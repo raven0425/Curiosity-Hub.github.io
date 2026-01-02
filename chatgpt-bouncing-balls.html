@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced Heptagon Physics</title>
+<style>
+  body { margin: 0; background: #111; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+const center = { x: canvas.width/2, y: canvas.height/2 };
+const SIDES = 7;
+const POLY_RADIUS = Math.min(canvas.width, canvas.height) * 0.35;
+const GRAVITY = 0.35;
+const RESTITUTION = 0.9;
+const WALL_FRICTION = 0.995;
+let rotation = 0;
+let rotationSpeed = 0.005;
+
+// Polygon
+function polygon() {
+  const pts = [];
+  for (let i = 0; i < SIDES; i++) {
+    const a = rotation + i * Math.PI * 2 / SIDES;
+    pts.push({
+      x: center.x + Math.cos(a) * POLY_RADIUS,
+      y: center.y + Math.sin(a) * POLY_RADIUS
+    });
+  }
+  return pts;
+}
+
+class Ball {
+  constructor(i) {
+    this.r = 10;
+    this.x = center.x + Math.random()*60 - 30;
+    this.y = center.y + Math.random()*60 - 30;
+    this.vx = Math.random()*4 - 2;
+    this.vy = Math.random()*4 - 2;
+    this.color = `hsl(${i*18},80%,60%)`;
+    this.id = i + 1;
+  }
+
+  update(poly) {
+    this.vy += GRAVITY;
+    this.x += this.vx;
+    this.y += this.vy;
+
+    // Wall collisions with rotation impulse
+    for (let i = 0; i < poly.length; i++) {
+      const a = poly[i];
+      const b = poly[(i+1)%poly.length];
+
+      const ex = b.x - a.x;
+      const ey = b.y - a.y;
+      const len = Math.hypot(ex, ey);
+
+      const nx = ey / len;
+      const ny = -ex / len;
+
+      const dx = this.x - a.x;
+      const dy = this.y - a.y;
+      const dist = dx*nx + dy*ny;
+
+      if (dist > -this.r) {
+        const penetration = this.r + dist;
+        this.x -= nx * penetration;
+        this.y -= ny * penetration;
+
+        const wallVX = -rotationSpeed * (this.y - center.y);
+        const wallVY =  rotationSpeed * (this.x - center.x);
+
+        const rvx = this.vx - wallVX;
+        const rvy = this.vy - wallVY;
+        const dot = rvx*nx + rvy*ny;
+
+        this.vx -= (1 + RESTITUTION) * dot * nx;
+        this.vy -= (1 + RESTITUTION) * dot * ny;
+
+        this.vx *= WALL_FRICTION;
+        this.vy *= WALL_FRICTION;
+      }
+    }
+  }
+
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+
+    ctx.fillStyle = "#000";
+    ctx.font = "12px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(this.id, this.x, this.y);
+  }
+}
+
+// Ball-ball collisions
+function ballCollisions(balls) {
+  for (let i = 0; i < balls.length; i++) {
+    for (let j = i + 1; j < balls.length; j++) {
+      const a = balls[i];
+      const b = balls[j];
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const dist = Math.hypot(dx, dy);
+      const minDist = a.r + b.r;
+
+      if (dist < minDist) {
+        const nx = dx / dist;
+        const ny = dy / dist;
+        const overlap = minDist - dist;
+
+        a.x -= nx * overlap / 2;
+        a.y -= ny * overlap / 2;
+        b.x += nx * overlap / 2;
+        b.y += ny * overlap / 2;
+
+        const dvx = b.vx - a.vx;
+        const dvy = b.vy - a.vy;
+        const impulse = dvx*nx + dvy*ny;
+
+        if (impulse < 0) {
+          const imp = impulse * RESTITUTION;
+          a.vx += imp * nx;
+          a.vy += imp * ny;
+          b.vx -= imp * nx;
+          b.vy -= imp * ny;
+        }
+      }
+    }
+  }
+}
+
+// Setup
+const balls = Array.from({length:20},(_,i)=>new Ball(i));
+
+function drawPoly(p) {
+  ctx.beginPath();
+  ctx.moveTo(p[0].x, p[0].y);
+  p.forEach(pt => ctx.lineTo(pt.x, pt.y));
+  ctx.closePath();
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function animate() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  rotation += rotationSpeed;
+
+  const poly = polygon();
+  drawPoly(poly);
+
+  balls.forEach(b => b.update(poly));
+  ballCollisions(balls);
+  balls.forEach(b => b.draw());
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+window.addEventListener("resize",()=>{
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+  center.x = canvas.width/2;
+  center.y = canvas.height/2;
+});
+</script>
+</body>
+</html>
