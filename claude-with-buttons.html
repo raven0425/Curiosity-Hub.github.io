@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bouncing Balls in Spinning Heptagon</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            overflow: hidden;
+            position: relative;
+        }
+        canvas {
+            border: 2px solid #0f3460;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+        .button-container {
+            position: absolute;
+            top: 20px;
+            display: flex;
+            justify-content: space-between;
+            width: calc(100% - 40px);
+            max-width: 800px;
+            pointer-events: none;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border: 2px solid #00d4ff;
+            background: rgba(26, 26, 46, 0.8);
+            color: #00d4ff;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            pointer-events: all;
+            backdrop-filter: blur(10px);
+        }
+        button:hover {
+            background: #00d4ff;
+            color: #1a1a2e;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="button-container">
+        <button id="counterClockwise">← Counter-Clockwise</button>
+        <button id="clockwise">Clockwise →</button>
+    </div>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = 800;
+        canvas.height = 800;
+        
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const heptagonRadius = 300;
+        const numSides = 7;
+        let rotation = 0;
+        let rotationSpeed = 0.01;
+        
+        // Button event listeners
+        document.getElementById('clockwise').addEventListener('click', () => {
+            rotationSpeed = 0.02;
+        });
+        
+        document.getElementById('counterClockwise').addEventListener('click', () => {
+            rotationSpeed = -0.02;
+        });
+        
+        // Generate 20 unique colors
+        const colors = [];
+        for (let i = 0; i < 20; i++) {
+            const hue = (i * 360 / 20);
+            colors.push(`hsl(${hue}, 70%, 60%)`);
+        }
+        
+        class Ball {
+            constructor(x, y, radius, color, number) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 4;
+                this.vy = (Math.random() - 0.5) * 4;
+                this.radius = radius;
+                this.color = color;
+                this.number = number;
+                this.gravity = 0.3;
+            }
+            
+            update() {
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                this.checkCollision();
+            }
+            
+            checkCollision() {
+                const vertices = getHeptagonVertices(rotation);
+                
+                // Check collision with each edge of the heptagon
+                for (let i = 0; i < vertices.length; i++) {
+                    const v1 = vertices[i];
+                    const v2 = vertices[(i + 1) % vertices.length];
+                    
+                    const collision = this.checkEdgeCollision(v1, v2);
+                    if (collision) {
+                        // Reflect velocity based on edge normal
+                        const edge = { x: v2.x - v1.x, y: v2.y - v1.y };
+                        const edgeLength = Math.sqrt(edge.x * edge.x + edge.y * edge.y);
+                        const normal = { x: -edge.y / edgeLength, y: edge.x / edgeLength };
+                        
+                        // Ensure normal points inward
+                        const toCenter = { x: centerX - this.x, y: centerY - this.y };
+                        if (normal.x * toCenter.x + normal.y * toCenter.y < 0) {
+                            normal.x = -normal.x;
+                            normal.y = -normal.y;
+                        }
+                        
+                        // Reflect velocity
+                        const dotProduct = this.vx * normal.x + this.vy * normal.y;
+                        this.vx = this.vx - 2 * dotProduct * normal.x;
+                        this.vy = this.vy - 2 * dotProduct * normal.y;
+                        
+                        // Add damping
+                        this.vx *= 0.95;
+                        this.vy *= 0.95;
+                        
+                        // Move ball away from edge
+                        this.x += normal.x * 2;
+                        this.y += normal.y * 2;
+                        
+                        break;
+                    }
+                }
+            }
+            
+            checkEdgeCollision(v1, v2) {
+                // Calculate distance from point to line segment
+                const dx = v2.x - v1.x;
+                const dy = v2.y - v1.y;
+                const lengthSquared = dx * dx + dy * dy;
+                
+                let t = ((this.x - v1.x) * dx + (this.y - v1.y) * dy) / lengthSquared;
+                t = Math.max(0, Math.min(1, t));
+                
+                const closestX = v1.x + t * dx;
+                const closestY = v1.y + t * dy;
+                
+                const distance = Math.sqrt((this.x - closestX) ** 2 + (this.y - closestY) ** 2);
+                
+                return distance < this.radius;
+            }
+            
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.number, this.x, this.y);
+            }
+        }
+        
+        function getHeptagonVertices(angle) {
+            const vertices = [];
+            for (let i = 0; i < numSides; i++) {
+                const theta = angle + (i * 2 * Math.PI / numSides) - Math.PI / 2;
+                vertices.push({
+                    x: centerX + heptagonRadius * Math.cos(theta),
+                    y: centerY + heptagonRadius * Math.sin(theta)
+                });
+            }
+            return vertices;
+        }
+        
+        function drawHeptagon(angle) {
+            const vertices = getHeptagonVertices(angle);
+            
+            ctx.strokeStyle = '#00d4ff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(vertices[0].x, vertices[0].y);
+            for (let i = 1; i < vertices.length; i++) {
+                ctx.lineTo(vertices[i].x, vertices[i].y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+        }
+        
+        // Create 20 balls
+        const balls = [];
+        for (let i = 0; i < 20; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = Math.random() * (heptagonRadius - 50);
+            const x = centerX + distance * Math.cos(angle);
+            const y = centerY + distance * Math.sin(angle);
+            balls.push(new Ball(x, y, 15, colors[i], i + 1));
+        }
+        
+        function animate() {
+            ctx.fillStyle = 'rgba(26, 26, 46, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            rotation += rotationSpeed;
+            
+            drawHeptagon(rotation);
+            
+            balls.forEach(ball => {
+                ball.update();
+                ball.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+    </script>
+</body>
+</html>
