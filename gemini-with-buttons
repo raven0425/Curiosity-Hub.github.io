@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bouncing Balls in a Spinning Heptagon</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: sans-serif;
+        }
+        canvas {
+            border: 2px solid #333;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .controls {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            pointer-events: none; /* Allows clicking through the container */
+        }
+        button {
+            position: absolute;
+            pointer-events: auto; /* Re-enables clicking for buttons */
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #00ffcc;
+            border: none;
+            border-radius: 5px;
+            color: #1a1a1a;
+            transition: transform 0.1s, background 0.2s;
+        }
+        button:hover {
+            background: #00d4aa;
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        #btn-ccw { left: 20px; }
+        #btn-cw { right: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="controls">
+    <button id="btn-ccw">↺ Counter-Clockwise</button>
+    <button id="btn-cw">Clockwise ↻</button>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 800;
+canvas.height = 800;
+
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+const heptagonRadius = 350;
+const gravity = 0.25;
+const friction = 0.98; 
+
+let rotationAngle = 0;
+let spinDirection = 1; // 1 for CW, -1 for CCW
+const baseRotationSpeed = 0.015;
+
+// Button Listeners
+document.getElementById('btn-cw').addEventListener('click', () => spinDirection = 1);
+document.getElementById('btn-ccw').addEventListener('click', () => spinDirection = -1);
+
+class Ball {
+    constructor(id) {
+        this.id = id;
+        this.radius = 12;
+        this.reset();
+    }
+
+    reset() {
+        this.x = centerX + (Math.random() - 0.5) * 100;
+        this.y = centerY + (Math.random() - 0.5) * 100;
+        this.vx = (Math.random() - 0.5) * 10;
+        this.vy = (Math.random() - 0.5) * 10;
+        this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.closePath();
+
+        ctx.fillStyle = "white";
+        ctx.font = "bold 10px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(this.id, this.x, this.y + 4);
+    }
+
+    update() {
+        this.vy += gravity;
+        this.x += this.vx;
+        this.y += this.vy;
+
+        const sides = 7;
+        const points = [];
+        const currentSpeed = baseRotationSpeed * spinDirection;
+
+        for (let i = 0; i < sides; i++) {
+            const angle = rotationAngle + (i * 2 * Math.PI) / sides;
+            points.push({
+                x: centerX + heptagonRadius * Math.cos(angle),
+                y: centerY + heptagonRadius * Math.sin(angle)
+            });
+        }
+
+        for (let i = 0; i < sides; i++) {
+            const p1 = points[i];
+            const p2 = points[(i + 1) % sides];
+
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            const lengthSq = dx * dx + dy * dy;
+            let t = ((this.x - p1.x) * dx + (this.y - p1.y) * dy) / lengthSq;
+            t = Math.max(0, Math.min(1, t));
+
+            const closestX = p1.x + t * dx;
+            const closestY = p1.y + t * dy;
+
+            const distDx = this.x - closestX;
+            const distDy = this.y - closestY;
+            const distance = Math.sqrt(distDx * distDx + distDy * distDy);
+
+            if (distance < this.radius) {
+                const nx = distDx / distance;
+                const ny = distDy / distance;
+
+                this.x = closestX + nx * this.radius;
+                this.y = closestY + ny * this.radius;
+
+                const dot = this.vx * nx + this.vy * ny;
+                
+                this.vx = (this.vx - 2 * dot * nx) * friction;
+                this.vy = (this.vy - 2 * dot * ny) * friction;
+
+                // Wall tangential velocity influence
+                const wallVelX = - (closestY - centerY) * currentSpeed;
+                const wallVelY = (closestX - centerX) * currentSpeed;
+                
+                this.vx += wallVelX * 0.5;
+                this.vy += wallVelY * 0.5;
+            }
+        }
+    }
+}
+
+const balls = Array.from({ length: 20 }, (_, i) => new Ball(i + 1));
+
+function animate() {
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    rotationAngle += baseRotationSpeed * spinDirection;
+
+    // Draw Heptagon
+    ctx.beginPath();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#00ffcc';
+    for (let i = 0; i < 7; i++) {
+        const angle = rotationAngle + (i * 2 * Math.PI) / 7;
+        const x = centerX + heptagonRadius * Math.cos(angle);
+        const y = centerY + heptagonRadius * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+
+    balls.forEach(ball => {
+        ball.update();
+        ball.draw();
+    });
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>
