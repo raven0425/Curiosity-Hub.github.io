@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bouncing Balls in a Spinning Heptagon</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+            font-family: sans-serif;
+        }
+        canvas {
+            border: 2px solid #333;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 800;
+canvas.height = 800;
+
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+const heptagonRadius = 350;
+const numSides = 7;
+const gravity = 0.25;
+const friction = 0.98; // Energy retained after bounce
+const rotationSpeed = 0.01;
+
+let currentRotation = 0;
+
+class Ball {
+    constructor(id) {
+        this.id = id;
+        this.radius = 15;
+        // Start near center to avoid spawning outside
+        this.x = centerX + (Math.random() - 0.5) * 100;
+        this.y = centerY + (Math.random() - 0.5) * 100;
+        this.vx = (Math.random() - 0.5) * 10;
+        this.vy = (Math.random() - 0.5) * 10;
+        this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+    }
+
+    update() {
+        this.vy += gravity;
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Collision logic with Heptagon walls
+        const sides = getHeptagonSides(currentRotation);
+        
+        sides.forEach(side => {
+            const dist = distToSegment(this.x, this.y, side.x1, side.y1, side.x2, side.y2);
+            
+            if (dist < this.radius) {
+                // Calculate wall normal (perpendicular vector)
+                const dx = side.x2 - side.x1;
+                const dy = side.y2 - side.y1;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                const nx = -dy / len;
+                const ny = dx / len;
+
+                // Simple collision response (Reflect velocity across normal)
+                const dot = this.vx * nx + this.vy * ny;
+                
+                // Only bounce if moving towards the wall
+                if (dot < 0) {
+                    this.vx = (this.vx - 2 * dot * nx) * friction;
+                    this.vy = (this.vy - 2 * dot * ny) * friction;
+                    
+                    // Push ball out of wall to prevent sticking
+                    const overlap = this.radius - dist;
+                    this.x += nx * overlap;
+                    this.y += ny * overlap;
+                }
+            }
+        });
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.closePath();
+
+        // Label
+        ctx.fillStyle = "white";
+        ctx.font = "bold 12px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(this.id, this.x, this.y + 5);
+    }
+}
+
+// Math Helper: Get coordinates of heptagon vertices
+function getHeptagonSides(rotation) {
+    const vertices = [];
+    for (let i = 0; i < numSides; i++) {
+        const angle = rotation + (i * 2 * Math.PI) / numSides;
+        vertices.push({
+            x: centerX + heptagonRadius * Math.cos(angle),
+            y: centerY + heptagonRadius * Math.sin(angle)
+        });
+    }
+
+    const sides = [];
+    for (let i = 0; i < numSides; i++) {
+        const p1 = vertices[i];
+        const p2 = vertices[(i + 1) % numSides];
+        sides.push({ x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y });
+    }
+    return sides;
+}
+
+// Math Helper: Distance from point to line segment
+function distToSegment(px, py, x1, y1, x2, y2) {
+    const l2 = (x1 - x2) ** 2 + (y1 - y2) ** 2;
+    if (l2 === 0) return Math.sqrt((px - x1) ** 2 + (py - y1) ** 2);
+    let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return Math.sqrt((px - (x1 + t * (x2 - x1))) ** 2 + (py - (y1 + t * (y2 - y1))) ** 2);
+}
+
+const balls = Array.from({ length: 20 }, (_, i) => new Ball(i + 1));
+
+function animate() {
+    // Clear canvas
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    currentRotation += rotationSpeed;
+
+    // Draw Heptagon
+    const sides = getHeptagonSides(currentRotation);
+    ctx.beginPath();
+    ctx.moveTo(sides[0].x1, sides[0].y1);
+    sides.forEach(s => ctx.lineTo(s.x2, s.y2));
+    ctx.strokeStyle = '#00ffcc';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.closePath();
+
+    // Update and Draw Balls
+    balls.forEach(ball => {
+        ball.update();
+        ball.draw();
+    });
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>
