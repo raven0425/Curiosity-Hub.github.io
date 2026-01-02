@@ -1,0 +1,3 @@
+write html, css and javascript to display 20 balls bouncing inside a spinning heptagon. Each ball should have a unique color, a number label, gravity and one collision detection with the walls all code in one file
+
+nice , can you add 2 buttons on top left & top right to make the heptgon move clockwise & counter clokwise wise based on the button click
