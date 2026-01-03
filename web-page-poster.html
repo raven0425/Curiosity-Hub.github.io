@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IMDb Movie Search</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #0f172a;
+        color: #e5e7eb;
+        display: flex;
+        justify-content: center;
+    }
+
+    .container {
+        max-width: 900px;
+        width: 100%;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .search-box {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    input {
+        flex: 1;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: none;
+        outline: none;
+    }
+
+    button {
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        background: #facc15;
+        color: #000;
+        font-weight: bold;
+    }
+
+    button:disabled {
+        background: #6b7280;
+        cursor: not-allowed;
+    }
+
+    .movies {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .movie {
+        background: #1e293b;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+
+    .movie:hover {
+        transform: scale(1.03);
+    }
+
+    .movie img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+
+    .movie-content {
+        padding: 12px;
+    }
+
+    .movie h3 {
+        font-size: 16px;
+        margin: 0 0 8px;
+    }
+
+    .rating {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+    }
+
+    .star {
+        font-size: 18px;
+    }
+
+    .green { color: #22c55e; }
+    .yellow { color: #eab308; }
+    .orange { color: #fb923c; }
+    .red { color: #ef4444; }
+
+    .votes {
+        font-size: 13px;
+        color: #9ca3af;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 25px 0;
+    }
+
+    .error {
+        text-align: center;
+        color: #f87171;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h1>🎬 IMDb Movie Search</h1>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search movie name..." />
+        <button onclick="searchMovies()">Search</button>
+    </div>
+
+    <div id="movies" class="movies"></div>
+
+    <div class="pagination">
+        <button id="prevBtn" onclick="changePage(-1)" disabled>Previous</button>
+        <button id="nextBtn" onclick="changePage(1)" disabled>Next</button>
+    </div>
+
+    <div id="error" class="error"></div>
+</div>
+
+<script>
+    const API_KEY = "796911c4"; // <-- PUT YOUR OMDb KEY HERE
+    let currentPage = 1;
+    let currentQuery = "";
+    let totalResults = 0;
+
+    async function searchMovies(page = 1) {
+        const query = document.getElementById("searchInput").value.trim();
+        if (!query) return;
+
+        currentQuery = query;
+        currentPage = page;
+        document.getElementById("error").innerText = "";
+        document.getElementById("movies").innerHTML = "Loading...";
+
+        try {
+            const res = await fetch(
+                `https://www.omdbapi.com/?s=${encodeURIComponent(query)}&page=${page}&apikey=${API_KEY}`
+            );
+            const data = await res.json();
+
+            if (data.Response === "False") {
+                document.getElementById("movies").innerHTML = "";
+                document.getElementById("error").innerText = data.Error;
+                return;
+            }
+
+            totalResults = parseInt(data.totalResults);
+            renderMovies(data.Search);
+            updatePagination();
+        } catch {
+            document.getElementById("error").innerText = "Failed to fetch data.";
+        }
+    }
+
+    async function renderMovies(movies) {
+        const container = document.getElementById("movies");
+        container.innerHTML = "";
+
+        for (const m of movies) {
+            const res = await fetch(
+                `https://www.omdbapi.com/?i=${m.imdbID}&apikey=${API_KEY}`
+            );
+            const d = await res.json();
+
+            const rating = parseFloat(d.imdbRating);
+            let color = "red";
+            if (rating > 7) color = "green";
+            else if (rating > 6) color = "yellow";
+            else if (rating >= 4) color = "orange";
+
+            const poster = d.Poster !== "N/A" ? d.Poster : "https://via.placeholder.com/300x450?text=No+Image";
+
+            container.innerHTML += `
+                <a href="https://www.imdb.com/title/${d.imdbID}/" target="_blank">
+                    <div class="movie">
+                        <img src="${poster}">
+                        <div class="movie-content">
+                            <h3>${d.Title} (${d.Year})</h3>
+                            <div class="rating">
+                                <span class="star ${color}">★</span>
+                                <span>${d.imdbRating}</span>
+                            </div>
+                            <div class="votes">${d.imdbVotes} votes</div>
+                        </div>
+                    </div>
+                </a>
+            `;
+        }
+    }
+
+    function updatePagination() {
+        document.getElementById("prevBtn").disabled = currentPage === 1;
+        document.getElementById("nextBtn").disabled = currentPage * 10 >= totalResults;
+    }
+
+    function changePage(delta) {
+        searchMovies(currentPage + delta);
+    }
+
+    document.getElementById("searchInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") searchMovies();
+    });
+</script>
+</body>
+</html>

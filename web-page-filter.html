@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMDb Search</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: system-ui, Arial, sans-serif;
+    background: #020617;
+    color: #e5e7eb;
+}
+.container {
+    padding: 14px;
+    max-width: 1100px;
+    margin: auto;
+}
+h1 {
+    text-align: center;
+    font-size: 1.6rem;
+}
+
+/* Search */
+.search-box {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+input, button {
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+}
+button {
+    background: #facc15;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Animated filters */
+.filters {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: all .35s ease;
+}
+.filters.show {
+    max-height: 200px;
+    opacity: 1;
+    margin-bottom: 15px;
+}
+
+/* Chips */
+.chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+.chip {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #1e293b;
+    font-size: .85rem;
+    cursor: pointer;
+}
+.chip.active {
+    background: #facc15;
+    color: #000;
+    font-weight: bold;
+}
+
+/* Movies */
+.movies {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+.movie {
+    background: #1e293b;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+}
+.movie img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+.movie-content {
+    padding: 8px;
+}
+.movie h3 {
+    font-size: .9rem;
+    margin: 0 0 4px;
+}
+
+/* Rating */
+.rating {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+.star { font-size: 1rem; }
+.green { color: #22c55e; }
+.yellow { color: #eab308; }
+.orange { color: #fb923c; }
+.red { color: #ef4444; }
+.votes {
+    font-size: .75rem;
+    color: #9ca3af;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: #020617;
+    max-width: 90%;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    font-size: .75rem;
+    color: #9ca3af;
+    padding: 15px;
+}
+
+/* Desktop */
+@media (min-width: 768px) {
+    .movies {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+}
+</style>
+</head>
+
+<body oncontextmenu="return false">
+<div class="container">
+    <h1>🎬 IMDb Search</h1>
+
+    <!-- SEARCH -->
+    <div class="search-box">
+        <input id="q" placeholder="Search movie or series">
+        <button onclick="S()">Search</button>
+    </div>
+
+    <!-- FILTERS -->
+    <div id="filters" class="filters">
+        <div class="chips" id="typeChips">
+            <div class="chip" data-type="">All</div>
+            <div class="chip" data-type="movie">Movies</div>
+            <div class="chip" data-type="series">Web Series</div>
+        </div>
+
+        <div class="chips" id="sortChips">
+            <div class="chip" data-sort="rating">⭐ Rating</div>
+            <div class="chip" data-sort="year">📅 Year</div>
+        </div>
+    </div>
+
+    <div id="m" class="movies"></div>
+
+    <div class="pagination">
+        <button id="p" onclick="C(-1)" disabled>Prev</button>
+        <button id="n" onclick="C(1)" disabled>Next</button>
+    </div>
+</div>
+
+<footer>
+Disclaimer: This product uses the OMDb API but is not endorsed or certified by IMDb.
+</footer>
+
+<div id="modal" class="modal" onclick="if(event.target.id==='modal')modal.style.display='none'">
+    <div class="modal-content">
+        <span onclick="modal.style.display='none'" style="font-size:22px;cursor:pointer">×</span>
+        <img id="mp" style="width:100%;max-height:300px;object-fit:cover">
+        <h3 id="mt"></h3>
+        <p id="md"></p>
+        <a id="ml" target="_blank">Open IMDb</a>
+    </div>
+</div>
+
+<script>
+(()=> {
+const KEY="796911c4";
+let page=1, query="", cache=[], total=0;
+let filterType=localStorage.type||"", sortBy=localStorage.sort||"rating";
+
+/* Chips setup */
+const setActive=(group,val)=>{
+    document.querySelectorAll(group+" .chip").forEach(c=>{
+        c.classList.toggle("active",c.dataset[group.includes("type")?"type":"sort"]===val);
+    });
+};
+setActive("#typeChips",filterType);
+setActive("#sortChips",sortBy);
+
+document.querySelectorAll("#typeChips .chip").forEach(c=>c.onclick=()=>{
+    filterType=c.dataset.type; localStorage.type=filterType; A();
+    setActive("#typeChips",filterType);
+});
+document.querySelectorAll("#sortChips .chip").forEach(c=>c.onclick=()=>{
+    sortBy=c.dataset.sort; localStorage.sort=sortBy; A();
+    setActive("#sortChips",sortBy);
+});
+
+/* 🔹 ENTER key triggers search */
+q.addEventListener("keydown", function(e){
+    if(e.key === "Enter") S();
+});
+
+/* Main search function */
+window.S=async(p=1)=>{
+    query=q.value.trim(); if(!query) return;
+    page=p; m.innerHTML="Loading...";
+    let res=await fetch(`https://www.omdbapi.com/?apikey=${KEY}&s=${query}&page=${page}`);
+    let data=await res.json();
+    if(data.Response==="False"){ m.innerHTML=data.Error; return; }
+    filters.classList.add("show");
+    total=+data.totalResults; cache=[];
+    for(let i of data.Search)
+        cache.push(await fetch(`https://www.omdbapi.com/?apikey=${KEY}&i=${i.imdbID}`).then(r=>r.json()));
+    A();
+};
+
+window.A=()=>{
+let list=filterType?cache.filter(x=>x.Type===filterType):cache;
+sortBy==="rating"
+?list.sort((a,b)=>b.imdbRating-a.imdbRating)
+:list.sort((a,b)=>b.Year.localeCompare(a.Year));
+m.innerHTML="";
+list.forEach(x=>{
+let s=x.imdbRating>7?"green":x.imdbRating>6?"yellow":x.imdbRating>=4?"orange":"red";
+m.innerHTML+=`<div class="movie" onclick="M('${x.imdbID}')">
+<img src="${x.Poster!=="N/A"?x.Poster:"https://via.placeholder.com/300x450"}">
+<div class="movie-content">
+<h3>${x.Title} (${x.Year})</h3>
+<div class="rating"><span class="star ${s}">★</span>${x.imdbRating}</div>
+<div class="votes">${x.imdbVotes}</div>
+</div></div>`;
+});
+p.disabled=page===1;
+n.disabled=page*10>=total;
+};
+
+window.M=id=>{
+let x=cache.find(a=>a.imdbID===id);
+modal.style.display="flex";
+mp.src=x.Poster;mt.innerText=x.Title;md.innerText=x.Plot;
+ml.href=`https://www.imdb.com/title/${id}/`;
+};
+window.C=d=>S(page+=d);
+})();
+</script>
+</body>
+</html>

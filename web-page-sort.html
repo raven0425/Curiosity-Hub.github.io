@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>IMDb Movie Search</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #0f172a;
+        color: #e5e7eb;
+        display: flex;
+        justify-content: center;
+    }
+
+    .container {
+        max-width: 1000px;
+        width: 100%;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .controls {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    input, select {
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: none;
+        outline: none;
+        flex: 1;
+    }
+
+    button {
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        background: #facc15;
+        font-weight: bold;
+    }
+
+    .movies {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .movie {
+        background: #1e293b;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .movie:hover {
+        transform: scale(1.03);
+    }
+
+    .movie img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+
+    .movie-content {
+        padding: 12px;
+    }
+
+    .movie h3 {
+        font-size: 15px;
+        margin: 0 0 6px;
+    }
+
+    .rating {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+    }
+
+    .star { font-size: 18px; }
+    .green { color: #22c55e; }
+    .yellow { color: #eab308; }
+    .orange { color: #fb923c; }
+    .red { color: #ef4444; }
+
+    .votes {
+        font-size: 12px;
+        color: #9ca3af;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 25px 0;
+    }
+
+    /* Modal */
+    .modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .modal-content {
+        background: #020617;
+        max-width: 800px;
+        width: 100%;
+        border-radius: 8px;
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+        position: relative;
+    }
+
+    .modal img {
+        width: 250px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+    .modal h2 {
+        margin-top: 0;
+    }
+
+    .close {
+        position: absolute;
+        right: 15px;
+        top: 10px;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    .error {
+        text-align: center;
+        color: #f87171;
+    }
+
+    a { color: #60a5fa; }
+</style>
+</head>
+
+<body>
+<div class="container">
+    <h1>🎬 IMDb Movie Search</h1>
+
+    <div class="controls">
+        <input type="text" id="searchInput" placeholder="Search movie name...">
+        <select id="sortSelect" onchange="applySort()">
+            <option value="rating">Sort by Rating</option>
+            <option value="year">Sort by Year</option>
+        </select>
+        <button onclick="searchMovies()">Search</button>
+    </div>
+
+    <div id="movies" class="movies"></div>
+
+    <div class="pagination">
+        <button id="prevBtn" onclick="changePage(-1)" disabled>Previous</button>
+        <button id="nextBtn" onclick="changePage(1)" disabled>Next</button>
+    </div>
+
+    <div id="error" class="error"></div>
+</div>
+
+<!-- Movie Modal -->
+<div id="modal" class="modal" onclick="closeModal(event)">
+    <div class="modal-content">
+        <span class="close" onclick="hideModal()">×</span>
+        <img id="modalPoster">
+        <div>
+            <h2 id="modalTitle"></h2>
+            <p id="modalPlot"></p>
+            <p><strong>Genre:</strong> <span id="modalGenre"></span></p>
+            <p><strong>Actors:</strong> <span id="modalActors"></span></p>
+            <p><strong>Runtime:</strong> <span id="modalRuntime"></span></p>
+            <p><strong>Rating:</strong> <span id="modalRating"></span></p>
+            <a id="modalLink" target="_blank">Open on IMDb</a>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_KEY = "796911c4";
+let currentPage = 1;
+let currentQuery = "";
+let totalResults = 0;
+let moviesCache = [];
+
+async function searchMovies(page = 1) {
+    const query = document.getElementById("searchInput").value.trim();
+    if (!query) return;
+
+    currentQuery = query;
+    currentPage = page;
+    document.getElementById("movies").innerHTML = "Loading...";
+    document.getElementById("error").innerText = "";
+
+    const res = await fetch(`https://www.omdbapi.com/?s=${query}&page=${page}&apikey=${API_KEY}`);
+    const data = await res.json();
+
+    if (data.Response === "False") {
+        document.getElementById("error").innerText = data.Error;
+        return;
+    }
+
+    totalResults = parseInt(data.totalResults);
+    moviesCache = [];
+
+    for (const m of data.Search) {
+        const d = await fetch(`https://www.omdbapi.com/?i=${m.imdbID}&apikey=${API_KEY}`).then(r => r.json());
+        moviesCache.push(d);
+    }
+
+    applySort();
+    updatePagination();
+}
+
+function applySort() {
+    const sortBy = document.getElementById("sortSelect").value;
+
+    if (sortBy === "rating") {
+        moviesCache.sort((a, b) => parseFloat(b.imdbRating) - parseFloat(a.imdbRating));
+    } else {
+        moviesCache.sort((a, b) => b.Year.localeCompare(a.Year));
+    }
+
+    renderMovies();
+}
+
+function renderMovies() {
+    const container = document.getElementById("movies");
+    container.innerHTML = "";
+
+    moviesCache.forEach(d => {
+        const rating = parseFloat(d.imdbRating);
+        let color = "red";
+        if (rating > 7) color = "green";
+        else if (rating > 6) color = "yellow";
+        else if (rating >= 4) color = "orange";
+
+        const poster = d.Poster !== "N/A" ? d.Poster : "https://via.placeholder.com/300x450?text=No+Image";
+
+        container.innerHTML += `
+            <div class="movie" onclick="showModal('${d.imdbID}')">
+                <img src="${poster}">
+                <div class="movie-content">
+                    <h3>${d.Title} (${d.Year})</h3>
+                    <div class="rating">
+                        <span class="star ${color}">★</span>${d.imdbRating}
+                    </div>
+                    <div class="votes">${d.imdbVotes} votes</div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function updatePagination() {
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = currentPage * 10 >= totalResults;
+}
+
+function changePage(d) {
+    searchMovies(currentPage + d);
+}
+
+function showModal(id) {
+    const m = moviesCache.find(x => x.imdbID === id);
+    modal.style.display = "flex";
+    modalPoster.src = m.Poster !== "N/A" ? m.Poster : "";
+    modalTitle.innerText = `${m.Title} (${m.Year})`;
+    modalPlot.innerText = m.Plot;
+    modalGenre.innerText = m.Genre;
+    modalActors.innerText = m.Actors;
+    modalRuntime.innerText = m.Runtime;
+    modalRating.innerText = m.imdbRating;
+    modalLink.href = `https://www.imdb.com/title/${m.imdbID}/`;
+}
+
+function hideModal() {
+    modal.style.display = "none";
+}
+
+function closeModal(e) {
+    if (e.target.id === "modal") hideModal();
+}
+
+searchInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") searchMovies();
+});
+</script>
+</body>
+</html>
