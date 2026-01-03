@@ -115,7 +115,7 @@ footer {
     <div class="card">
         <p>
             In this guide, we build an IMDb-style movie search website
-            <strong>step by step</strong>.
+            <strong>step by step</strong> with help from chatgpt(free tier).
             We start with a simple HTML page and gradually evolve it into a
             <strong>mobile-friendly, secure, backend-powered application</strong>.
         </p>
@@ -147,15 +147,13 @@ footer {
 
         <p>
             To proceed legally and reliably, we use the
-            <strong>OMDb API (Open Movie Database)</strong>,
-            which offers IMDb-backed data and a free API key for development.
+            <strong>OMDb API (Open Movie Database)</strong> for IMDb-backed data.
         </p>
 
         <div class="demo-links">
             <a href="simple-web-page.html" target="_blank" rel="noopener noreferrer">🔗 Open in new tab</a>
             <span class="demo-toggle" onclick="toggleDemo(this)">Show Demo</span>
         </div>
-
         <iframe class="demo-frame" src="simple-web-page.html"></iframe>
     </div>
 </div>
@@ -165,25 +163,13 @@ footer {
     <h2>Step 2: IMDb Data Integration</h2>
     <div class="card">
         <p>
-            Since IMDb does not allow direct public access, we integrate the
-            <strong>OMDb API</strong>, which provides IMDb-backed data.
-        </p>
-
-        <ul>
-            <li>Movie title</li>
-            <li>IMDb rating</li>
-            <li>Number of votes</li>
-        </ul>
-
-        <p>
-            At this stage, the API key is still exposed (acceptable only for learning).
-        </p>
-
-        <div class="demo-links">
+           Integrate OMDb API for movie title, rating, and votes.
+		</p>
+		
+		<div class="demo-links">
             <a href="web-page-poster.html" target="_blank" rel="noopener noreferrer">🔗 Open in new tab</a>
             <span class="demo-toggle" onclick="toggleDemo(this)">Show Demo</span>
         </div>
-
         <iframe class="demo-frame" src="web-page-poster.html"></iframe>
     </div>
 </div>
@@ -193,7 +179,7 @@ footer {
     <h2>Step 3: Cleaner UI & Pagination</h2>
     <div class="card">
         <p>
-            The UI is improved to resemble a real product:
+            UI improvements to resemble a real product.
         </p>
 
         <ul>
@@ -211,61 +197,55 @@ footer {
             <a href="web-page-sort.html" target="_blank" rel="noopener noreferrer">🔗 Open in new tab</a>
             <span class="demo-toggle" onclick="toggleDemo(this)">Show Demo</span>
         </div>
-
         <iframe class="demo-frame" src="web-page-sort.html"></iframe>
     </div>
 </div>
 
-<!-- STEP 4–6 COMBINED -->
+<!-- STEP 4 COMBINED -->
 <div class="section">
-    <h2>Step 4–6: Sorting, Filters, Mobile UX & Infinite Scroll</h2>
+    <h2>Step 4: Sorting, Filters, Mobile UX & Infinite Scroll</h2>
     <div class="card">
         <p>
-            In this stage, we combine advanced functionality and UX improvements:
+            Advanced functionality and UX improvements:
         </p>
-
         <ul>
-            <li>Sort results by rating (default) or by year</li>
-            <li>Filter results to show only Movies or Web Series</li>
-            <li>Movie details modal showing plot, actors, and genre</li>
-            <li>Mobile-first responsive layout and touch-friendly chip-style filters</li>
-            <li>Animated filter reveal and filters remembered across searches using <code>localStorage</code></li>
+            <li>Sort by rating/year</li>
+            <li>Filter by Movies / Web Series</li>
+            <li>Movie details modal</li>
+            <li>Mobile-first layout & touch-friendly filters</li>
+            <li>Animated filter reveal, filters remembered across searches</li>
             <li>Infinite scroll replaces pagination for smoother browsing</li>
         </ul>
-
+		
+		<p>
+            These enhancements make the app feel like a real-world streaming platform or IMDb.
+        </p>
+		
         <div class="demo-links">
             <a href="web-page-filter.html" target="_blank" rel="noopener noreferrer">🔗 Open in new tab</a>
             <span class="demo-toggle" onclick="toggleDemo(this)">Show Demo</span>
         </div>
-
         <iframe class="demo-frame" src="web-page-filter.html"></iframe>
     </div>
 </div>
 
-<!-- STEP 7 -->
+<!-- STEP 5 -->
 <div class="section">
-    <h2>Step 7: Backend & Real Code Protection</h2>
+    <h2>Step 5: Backend & Real Code Protection</h2>
     <div class="card">
-        <p>
-            To truly protect the application, we introduce a backend:
-        </p>
-
+        <p>Backend stores API keys and protects logic:</p>
         <ul>
             <li>Node.js + Express API</li>
-            <li>OMDb API key stored securely</li>
-            <li>Frontend talks only to our backend</li>
-            <li>Rate limiting & logging possible</li>
+            <li>OMDb key hidden</li>
+            <li>Frontend communicates only with your API</li>
         </ul>
-
-        <p>
-            <strong>This is the only correct way</strong> to protect API keys and business logic.
-        </p>
-
         <div class="code">
             Browser → Your API → OMDb API<br>
             (Key hidden on server)
         </div>
-
+		<p>
+            <strong>This is the only correct way</strong> to protect API keys and business logic.
+        </p>
         <div class="demo-links">
             <a href="#">🔗 Live Demo (Final Secure App)</a>
             <a href="#">📁 Backend Repo</a>
@@ -273,32 +253,86 @@ footer {
     </div>
 </div>
 
+<!-- FUTURE ENHANCEMENTS -->
+<div class="section">
+    <h2>Future Enhancements</h2>
+    <div class="card">
+        <ul>
+            <li>Better error handling for network or API issues.</li>
+            <li>Loading indicators while fetching data.</li>
+            <li>Accessibility improvements (keyboard, screen readers).</li>
+            <li>More filters like genre, language, and rating.</li>
+            <li>Performance optimization (lazy loading, caching).</li>
+            <li>Option to save favorite movies or recent searches.</li>
+        </ul>
+    </div>
+</div>
+
+
+
 <!-- CONCLUSION -->
 <div class="section">
     <h2>Conclusion</h2>
     <div class="card">
         <p>
-            We started with a simple HTML page and evolved it into a
-            <strong>production-style, secure, mobile-first web application</strong>.
+            We started simple and evolved to a secure, mobile-first app. This reflects real-world incremental software development.
         </p>
-        <p>
-            This journey mirrors how real software is built — incrementally,
-            thoughtfully, and securely.
-        </p>
+    </div>
+</div>
+
+<!-- SOURCE CODE LINKS -->
+<div class="section">
+    <h2>Source Code Access (GitHub Raw Files)</h2>
+    <div class="card">
+        <p>Below are the raw HTML files for Steps 1–4. Click the links to view or download them directly from GitHub:</p>
+        <ul>
+            <li><strong>Step 1 – Simple Page:</strong> 
+                <a href="https://raw.githubusercontent.com/raven0425/Curiosity-Hub.github.io/refs/heads/main/simple-web-page.html" target="_blank">View/Download</a>
+            </li>
+            <li><strong>Step 2 – Page with Posters:</strong> 
+                <a href="https://raw.githubusercontent.com/raven0425/Curiosity-Hub.github.io/refs/heads/main/web-page-poster.html" target="_blank">View/Download</a>
+            </li>
+            <li><strong>Step 3 – Page with Sorting:</strong> 
+                <a href="https://raw.githubusercontent.com/raven0425/Curiosity-Hub.github.io/refs/heads/main/web-page-sort.html" target="_blank">View/Download</a>
+            </li>
+            <li><strong>Step 4 – Page with Filters:</strong> 
+                <a href="https://raw.githubusercontent.com/raven0425/Curiosity-Hub.github.io/refs/heads/main/web-page-filter.html" target="_blank">View/Download</a>
+            </li>
+        </ul>
+        <p>Use these files to explore the source code or run your own local demos.</p>
     </div>
 </div>
 
 </div>
 
+
+
+
 <footer>
-    Disclaimer: This project uses the OMDb API but is not endorsed or certified by IMDb.<br>
-    All movie data is provided for educational purposes only.
+    <p><strong> ⚠️ Disclaimer:</strong> This website, created with the assistance of ChatGPT, uses the <strong>OMDb API (not endorsed by IMDb)</strong> </p>
+	<p>and provides all content for educational and demo purposes only.</p>
+</footer>
+
 </footer>
 
 <script>
-function toggleDemo(button){
+// Toggle demo and auto-collapse others
+function toggleDemo(button) {
     const iframe = button.parentElement.nextElementSibling;
-    if(iframe.style.display === "none"){
+    const allIframes = document.querySelectorAll("iframe.demo-frame");
+    const allButtons = document.querySelectorAll(".demo-toggle");
+
+    // Hide other iframes
+    allIframes.forEach((f, i) => {
+        if(f !== iframe) f.style.display = "none";
+    });
+    allButtons.forEach((b) => {
+        if(b !== button) b.innerText = "Show Demo";
+    });
+
+    // Toggle this iframe
+    const style = window.getComputedStyle(iframe);
+    if(style.display === "none") {
         iframe.style.display = "block";
         button.innerText = "Hide Demo";
     } else {
