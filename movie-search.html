@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Building an IMDb Search Website – Step by Step</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #020617;
+    color: #e5e7eb;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1, h2, h3 {
+    color: #facc15;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section {
+    margin-bottom: 50px;
+}
+
+.card {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+a {
+    color: #60a5fa;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.code {
+    background: #020617;
+    border-radius: 8px;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    color: #a5b4fc;
+}
+
+.demo-links {
+    margin-top: 10px;
+}
+
+.demo-links a, .demo-toggle {
+    display: inline-block;
+    margin-right: 10px;
+    margin-top: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #1e293b;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: #60a5fa;
+}
+
+.demo-toggle {
+    background: #334155;
+}
+
+iframe.demo-frame {
+    width: 100%;
+    height: 400px;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    margin-top: 10px;
+    display: none; /* initially hidden */
+}
+
+footer {
+    border-top: 1px solid #1e293b;
+    margin-top: 60px;
+    padding: 20px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🎬 Building an IMDb Search Website<br>From Simple Page to Secure App</h1>
+
+<!-- INTRO -->
+<div class="section">
+    <h2>Introduction</h2>
+    <div class="card">
+        <p>
+            In this guide, we build an IMDb-style movie search website
+            <strong>step by step</strong>.
+            We start with a simple HTML page and gradually evolve it into a
+            <strong>mobile-friendly, secure, backend-powered application</strong>.
+        </p>
+        <p>
+            Each stage represents a realistic evolution you’d see in a
+            professional project.
+        </p>
+    </div>
+</div>
+
+<!-- STEP 1 -->
+<div class="section">
+    <h2>Step 1: Simple Search Page & API Reality Check</h2>
+    <div class="card">
+        <p>
+            We begin with a minimal webpage containing:
+        </p>
+        <ul>
+            <li>A single search bar</li>
+            <li>A search button</li>
+            <li>No styling frameworks</li>
+        </ul>
+
+        <p>
+            <strong>Important clarification:</strong><br>
+            IMDb does <strong>not</strong> provide a free public API for developers.
+            This means we cannot fetch movie data directly from IMDb.
+        </p>
+
+        <p>
+            To proceed legally and reliably, we use the
+            <strong>OMDb API (Open Movie Database)</strong>,
+            which offers IMDb-backed data and a free API key for development.
+        </p>
+
+        <div class="demo-links">
+            <a href="simple-web-page.html" target="_blank" rel="noopener noreferrer">🔗 Open in new tab</a>
+            <span class="demo-toggle" onclick="toggleDemo(this)">Show Demo</span>
+        </div>
+
+        <iframe class="demo-frame" src="simple-web-page.html"></iframe>
+    </div>
+</div>
+
+<!-- STEP 2 -->
+<div class="section">
+    <h2>Step 2: IMDb Data Integration</h2>
+    <div class="card">
+        <p>
+            Since IMDb does not allow direct public access, we integrate the
+            <strong>OMDb API</strong>, which provides IMDb-backed data.
+        </p>
+
+        <ul>
+            <li>Movie title</li>
+            <li>IMDb rating</li>
+            <li>Number of votes</li>
+        </ul>
+
+        <p>
+            At this stage, the API key is still exposed (acceptable only for learning).
+        </p>
+
+        <div class="demo-links">
+            <a href="web-page-poster.html" target="_blank" rel="noopener noreferrer">🔗 Open in new tab</a>
+            <span class="demo-toggle" onclick="toggleDemo(this)">Show Demo</span>
+        </div>
+
+        <iframe class="demo-frame" src="web-page-poster.html"></iframe>
+    </div>
+</div>
+
+<!-- STEP 3 -->
+<div class="section">
+    <h2>Step 3: Cleaner UI & Pagination</h2>
+    <div class="card">
+        <p>
+            The UI is improved to resemble a real product:
+        </p>
+
+        <ul>
+            <li>Grid layout</li>
+            <li>Movie posters</li>
+            <li>Pagination controls</li>
+            <li>Clickable IMDb links</li>
+        </ul>
+
+        <p>
+            We also introduce <strong>color-coded star ratings</strong> for better UX.
+        </p>
+
+        <div class="demo-links">
+            <a href="web-page-sort.html" target="_blank" rel="noopener noreferrer">🔗 Open in new tab</a>
+            <span class="demo-toggle" onclick="toggleDemo(this)">Show Demo</span>
+        </div>
+
+        <iframe class="demo-frame" src="web-page-sort.html"></iframe>
+    </div>
+</div>
+
+<!-- STEP 4–6 COMBINED -->
+<div class="section">
+    <h2>Step 4–6: Sorting, Filters, Mobile UX & Infinite Scroll</h2>
+    <div class="card">
+        <p>
+            In this stage, we combine advanced functionality and UX improvements:
+        </p>
+
+        <ul>
+            <li>Sort results by rating (default) or by year</li>
+            <li>Filter results to show only Movies or Web Series</li>
+            <li>Movie details modal showing plot, actors, and genre</li>
+            <li>Mobile-first responsive layout and touch-friendly chip-style filters</li>
+            <li>Animated filter reveal and filters remembered across searches using <code>localStorage</code></li>
+            <li>Infinite scroll replaces pagination for smoother browsing</li>
+        </ul>
+
+        <div class="demo-links">
+            <a href="web-page-filter.html" target="_blank" rel="noopener noreferrer">🔗 Open in new tab</a>
+            <span class="demo-toggle" onclick="toggleDemo(this)">Show Demo</span>
+        </div>
+
+        <iframe class="demo-frame" src="web-page-filter.html"></iframe>
+    </div>
+</div>
+
+<!-- STEP 7 -->
+<div class="section">
+    <h2>Step 7: Backend & Real Code Protection</h2>
+    <div class="card">
+        <p>
+            To truly protect the application, we introduce a backend:
+        </p>
+
+        <ul>
+            <li>Node.js + Express API</li>
+            <li>OMDb API key stored securely</li>
+            <li>Frontend talks only to our backend</li>
+            <li>Rate limiting & logging possible</li>
+        </ul>
+
+        <p>
+            <strong>This is the only correct way</strong> to protect API keys and business logic.
+        </p>
+
+        <div class="code">
+            Browser → Your API → OMDb API<br>
+            (Key hidden on server)
+        </div>
+
+        <div class="demo-links">
+            <a href="#">🔗 Live Demo (Final Secure App)</a>
+            <a href="#">📁 Backend Repo</a>
+        </div>
+    </div>
+</div>
+
+<!-- CONCLUSION -->
+<div class="section">
+    <h2>Conclusion</h2>
+    <div class="card">
+        <p>
+            We started with a simple HTML page and evolved it into a
+            <strong>production-style, secure, mobile-first web application</strong>.
+        </p>
+        <p>
+            This journey mirrors how real software is built — incrementally,
+            thoughtfully, and securely.
+        </p>
+    </div>
+</div>
+
+</div>
+
+<footer>
+    Disclaimer: This project uses the OMDb API but is not endorsed or certified by IMDb.<br>
+    All movie data is provided for educational purposes only.
+</footer>
+
+<script>
+function toggleDemo(button){
+    const iframe = button.parentElement.nextElementSibling;
+    if(iframe.style.display === "none"){
+        iframe.style.display = "block";
+        button.innerText = "Hide Demo";
+    } else {
+        iframe.style.display = "none";
+        button.innerText = "Show Demo";
+    }
+}
+</script>
+
+</body>
+</html>
