@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>API Playground & Tutorial</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      padding: 20px;
+      line-height: 1.5;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 700px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    button {
+      padding: 8px 12px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .emoji img {
+      width: 48px;
+      margin-top: 10px;
+    }
+
+    img.gif {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 6px;
+    }
+
+    .loading {
+      color: #888;
+      font-style: italic;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+
+    pre {
+      background: #eee;
+      padding: 10px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+
+<h1>API Playground & Tutorial</h1>
+
+<!-- Random Text API -->
+<div class="card">
+  <h2>Random Text API (Quotable)</h2>
+  <button onclick="getRandomText()">Get Quote</button>
+  <p id="quote"></p>
+  <small id="author"></small>
+  <p id="quoteStatus"></p>
+  <details>
+    <summary>API Documentation</summary>
+    <p>Endpoint: <code>https://api.quotable.io/random</code></p>
+    <p>Returns a JSON object:</p>
+    <pre>{
+  "content": "Quote text here",
+  "author": "Author name"
+}</pre>
+    <p>Explanation:</p>
+    <pre>
+// fetch() calls the API
+// .then(res => res.json()) converts JSON string to object
+// data.content and data.author are extracted
+// DOM is updated with text
+</pre>
+  </details>
+</div>
+
+<!-- GitHub Emoji API -->
+<div class="card">
+  <h2>GitHub Emoji API</h2>
+  <button onclick="getEmoji()">Get Random Emoji</button>
+  <div class="emoji" id="emoji"></div>
+  <p id="emojiStatus"></p>
+  <details>
+    <summary>API Documentation</summary>
+    <p>Endpoint: <code>https://api.github.com/emojis</code></p>
+    <p>Returns a JSON object mapping names → image URLs:</p>
+    <pre>{
+  "smile": "https://github.githubassets.com/images/icons/emoji/unicode/1f604.png",
+  "heart": "https://github.githubassets.com/images/icons/emoji/unicode/2764.png",
+  ...
+}</pre>
+    <p>Explanation:</p>
+    <pre>
+// fetch() calls the API
+// Object.keys(data) gets all emoji names
+// A random name is selected
+// The image URL is inserted into the DOM
+</pre>
+  </details>
+</div>
+
+<!-- Yes / No API -->
+<div class="card">
+  <h2>Yes / No API</h2>
+  <button onclick="getYesNo()">Ask a Question</button>
+  <h3 id="answer"></h3>
+  <img class="gif" id="gif">
+  <p id="yesnoStatus"></p>
+  <details>
+    <summary>API Documentation</summary>
+    <p>Endpoint: <code>https://yesno.wtf/api</code></p>
+    <p>Returns a JSON object:</p>
+    <pre>{
+  "answer": "yes" or "no",
+  "forced": false,
+  "image": "URL to GIF"
+}</pre>
+    <p>Explanation:</p>
+    <pre>
+// fetch() calls the API
+// data.answer is displayed as YES/NO
+// data.image is inserted as GIF
+// Loading and error states are shown
+</pre>
+  </details>
+</div>
+
+<script>
+  // ---------- Random Text API ----------
+  function getRandomText() {
+    const status = document.getElementById("quoteStatus");
+    status.textContent = "Loading...";
+    status.className = "loading";
+
+    fetch("https://api.quotable.io/random")
+      .then(res => {
+        if (!res.ok) throw new Error("Network response not ok");
+        return res.json();
+      })
+      .then(data => {
+        document.getElementById("quote").textContent = `"${data.content}"`;
+        document.getElementById("author").textContent = `— ${data.author}`;
+        status.textContent = "Loaded successfully!";
+        status.className = "";
+      })
+      .catch(err => {
+        status.textContent = "Error: " + err.message;
+        status.className = "error";
+      });
+  }
+
+  // ---------- GitHub Emoji API ----------
+  function getEmoji() {
+    const status = document.getElementById("emojiStatus");
+    status.textContent = "Loading...";
+    status.className = "loading";
+    document.getElementById("emoji").innerHTML = "";
+
+    fetch("https://api.github.com/emojis")
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch emojis");
+        return res.json();
+      })
+      .then(data => {
+        const keys = Object.keys(data);
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        document.getElementById("emoji").innerHTML =
+          `<strong>${randomKey}</strong><br><img src="${data[randomKey]}" alt="${randomKey}">`;
+        status.textContent = "Loaded successfully!";
+        status.className = "";
+      })
+      .catch(err => {
+        status.textContent = "Error: " + err.message;
+        status.className = "error";
+      });
+  }
+
+  // ---------- Yes / No API ----------
+  function getYesNo() {
+    const status = document.getElementById("yesnoStatus");
+    status.textContent = "Loading...";
+    status.className = "loading";
+    document.getElementById("answer").textContent = "";
+    document.getElementById("gif").src = "";
+
+    fetch("https://yesno.wtf/api")
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch Yes/No");
+        return res.json();
+      })
+      .then(data => {
+        document.getElementById("answer").textContent = data.answer.toUpperCase();
+        document.getElementById("gif").src = data.image;
+        status.textContent = "Loaded successfully!";
+        status.className = "";
+      })
+      .catch(err => {
+        status.textContent = "Error: " + err.message;
+        status.className = "error";
+      });
+  }
+</script>
+
+</body>
+</html>
