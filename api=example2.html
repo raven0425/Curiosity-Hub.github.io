@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>API Portfolio</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+:root {
+  --bg: #0f172a;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+}
+
+body { margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); }
+header { padding:3rem 1rem 2rem; text-align:center; }
+header h1 { font-size:2.5rem; margin:0; }
+header p { max-width:720px; margin:1rem auto 0; color:var(--muted); line-height:1.6; }
+section { padding:2rem 1rem; max-width:1200px; margin:auto; }
+section h2 { margin-bottom:1rem; border-left:4px solid var(--accent); padding-left:0.75rem; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.5rem; }
+
+/* Glassmorphic Flipcards */
+.card { perspective:1000px; cursor:pointer; position:relative; transition: transform 0.3s ease; }
+.card:hover { transform:scale(1.05); }
+.card-inner { position:relative; height:320px; transition: transform 0.75s ease; transform-style: preserve-3d; border-radius:16px; }
+.card.flipped .card-inner { transform:rotateY(180deg); }
+.card-face { position:absolute; inset:0; padding:1rem; border-radius:16px; backface-visibility:hidden; display:flex; flex-direction:column; justify-content:space-between; backdrop-filter:blur(12px); background:linear-gradient(135deg, rgba(56,189,248,0.2), rgba(255,255,255,0.05)); border:1px solid rgba(255,255,255,0.1); background-size:400% 400%; animation: gradient 8s ease infinite; box-shadow:0 4px 15px rgba(0,0,0,0.25);}
+.card:hover .card-face { box-shadow:0 8px 25px rgba(0,0,0,0.35);}
+@keyframes gradient { 0% {background-position:0% 50%;} 50% {background-position:100% 50%;} 100% {background-position:0% 50%;} }
+.card-front h3 { margin:0; }
+.card-front p { margin-top:0.5rem; font-size:0.9rem; color:var(--muted); }
+.tap { font-size:0.75rem; color:var(--accent); margin-top:auto; text-align:right; }
+.card-back { transform:rotateY(180deg); font-size:0.75rem; overflow:auto; display:flex; flex-direction:column; }
+pre { margin:0; white-space:pre-wrap; word-break:break-word; font-size:0.7rem; color:#e2e8f0; }
+.card-back img, .card-back video { max-width:100%; max-height:180px; border-radius:12px; object-fit:contain; margin-bottom:0.5rem; }
+audio { width:100%; margin-bottom:0.5rem; border-radius:8px; }
+.refresh-btn { padding:0.25rem 0.5rem; font-size:0.7rem; background:var(--accent); border:none; border-radius:8px; color:#0f172a; cursor:pointer; margin-bottom:0.5rem; align-self:flex-start; }
+#api-directory li { margin-bottom:0.5rem; }
+#api-directory a { color:var(--accent); text-decoration:none; transition:color 0.3s; }
+#api-directory a:hover { color:#0ea5e9; text-decoration:underline; }
+footer { text-align:center; padding:2rem 1rem 3rem; color:var(--muted); font-size:0.85rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌐 API Portfolio</h1>
+  <p>Live API portfolio with media, music/audio previews, and JSON responses. Tap to flip cards!</p>
+</header>
+
+<div id="sections"></div>
+
+<section>
+  <h2>📚 Public API Directory</h2>
+  <ul id="api-directory">
+    <li><a href="https://github.com/public-apis/public-apis" target="_blank">Public APIs (GitHub repo)</a></li>
+    <li><a href="https://publicapis.io" target="_blank">PublicAPIs.io</a></li>
+    <li><a href="https://publicapis.dev" target="_blank">PublicAPIs.dev</a></li>
+    <li><a href="https://freeapis.io" target="_blank">FreeAPIs.io</a></li>
+    <li><a href="https://apilist.fun" target="_blank">ApiList.fun</a></li>
+    <li><a href="https://freeapihub.com" target="_blank">Free API Hub</a></li>
+  </ul>
+</section>
+
+<footer>Built as a portfolio project · Hosted on GitHub Pages</footer>
+
+<script>
+const apisJSON = [
+  // Data & Open Info
+  {"category":"Data & Open Info","name":"REST Countries","desc":"Country info, flags, population","test":"https://restcountries.com/v3.1/name/japan"},
+  {"category":"Data & Open Info","name":"World Bank","desc":"World Bank indicators","test":"https://api.worldbank.org/v2/countries/US/indicators/NY.GDP.MKTP.CD?format=json"},
+  {"category":"Data & Open Info","name":"Zippopotam.us","desc":"Postal code lookup","test":"https://api.zippopotam.us/us/90210"},
+  // Fun / Entertainment
+  {"category":"Fun / Entertainment","name":"icanhazdadjoke","desc":"Random dad jokes","test":"https://icanhazdadjoke.com/"},
+  {"category":"Fun / Entertainment","name":"Meme API","desc":"Random memes","test":"https://meme-api.com/gimme"},
+  {"category":"Fun / Entertainment","name":"Bored API","desc":"Random activities","test":"https://www.boredapi.com/api/activity"},
+  // Music / Media
+  {"category":"Music/Media","name":"Random Cat Gif","desc":"Random cat GIF from Cataas","test":"https://cataas.com/cat/gif?json=true"},
+  {"category":"Music/Media","name":"Random Dog Image","desc":"Random dog image","test":"https://dog.ceo/api/breeds/image/random"},
+  {"category":"Music/Media","name":"Random Fox Image","desc":"Random fox image","test":"https://randomfox.ca/floof/"},
+  {"category":"Music/Media","name":"iTunes Search (Beatles)","desc":"iTunes song search with audio preview","test":"https://itunes.apple.com/search?term=beatles&limit=1"},
+  // Weather
+  {"category":"Weather","name":"Open-Meteo","desc":"Weather forecast API","test":"https://api.open-meteo.com/v1/forecast?latitude=35&longitude=139&hourly=temperature_2m"}
+];
+
+function init(apis) {
+  const sectionsEl = document.getElementById('sections');
+  const categories = {};
+
+  apis.forEach(api => {
+    if (!categories[api.category]) categories[api.category] = [];
+    categories[api.category].push(api);
+  });
+
+  for (const [cat, items] of Object.entries(categories)) {
+    const section = document.createElement('section');
+    section.innerHTML = `<h2>${cat}</h2>`;
+    const grid = document.createElement('div'); grid.className='grid';
+
+    items.forEach(api => {
+      const card = document.createElement('div'); card.className='card';
+      card.dataset.api = api.test;
+      card.innerHTML = `<div class="card-inner">
+        <div class="card-face card-front">
+          <h3>${api.name}</h3>
+          <p>${api.desc}</p>
+          <span class="tap">Tap to flip →</span>
+        </div>
+        <div class="card-face card-back">
+          <button class="refresh-btn">🔄 Refresh</button>
+          <pre>Loading...</pre>
+        </div>
+      </div>`;
+      grid.appendChild(card);
+
+      const back = card.querySelector('.card-back');
+      const btn = back.querySelector('.refresh-btn');
+      let fetched=false;
+
+      async function fetchAPI() {
+        try {
+          const headers = api.name==='icanhazdadjoke'?{Accept:'application/json'}:{};
+          let res=await fetch(api.test,{headers});
+          let data=await res.json();
+
+          let imageUrl=''; let audioUrl='';
+
+          // Image detection
+          if(api.name.toLowerCase().includes('cat')&&data.url) imageUrl='https://cataas.com'+data.url;
+          else if(api.name.toLowerCase().includes('dog')&&data.message) imageUrl=data.message;
+          else if(api.name.toLowerCase().includes('fox')&&data.image) imageUrl=data.image;
+          else if(api.name.toLowerCase().includes('itunes')&&data.results&&data.results[0]) {
+            imageUrl=data.results[0].artworkUrl100;
+            audioUrl=data.results[0].previewUrl;
+          }
+
+          back.innerHTML='<button class="refresh-btn">🔄 Refresh</button>';
+          if(imageUrl){ const img=document.createElement('img'); img.src=imageUrl; back.appendChild(img);}
+          if(audioUrl){ const audio=document.createElement('audio'); audio.controls=true; audio.src=audioUrl; back.appendChild(audio);}
+          const pre=document.createElement('pre'); pre.textContent=JSON.stringify(data,null,2); back.appendChild(pre);
+          back.querySelector('.refresh-btn').addEventListener('click', e=>{e.stopPropagation(); fetchAPI();});
+          fetched=true;
+        } catch { back.innerHTML='Failed to fetch API'; }
+      }
+
+      card.addEventListener('click', e=>{ if(!btn.contains(e.target)){ card.classList.toggle('flipped'); if(!fetched) fetchAPI(); } });
+    });
+
+    section.appendChild(grid);
+    sectionsEl.appendChild(section);
+  }
+}
+
+init(apisJSON);
+</script>
+
+</body>
+</html>
