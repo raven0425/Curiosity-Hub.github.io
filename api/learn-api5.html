@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>API Learning Playground</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #eef3f9;
+  padding: 20px;
+}
+
+h1, h2, h3 {
+  text-align: center;
+}
+
+.container {
+  max-width: 1000px;
+  margin: auto;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.diagram {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin-top: 30px;
+}
+
+.box {
+  width: 28%;
+  background: #dbe7ff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.packet {
+  position: absolute;
+  top: 55%;
+  left: 10%;
+  background: #4f7cff;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 20px;
+  display: none;
+}
+
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+button {
+  display: block;
+  margin: 15px auto;
+  padding: 14px 25px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #4f7cff;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #3a63e0;
+}
+
+.log {
+  background: #111;
+  color: #0f0;
+  padding: 15px;
+  border-radius: 8px;
+  font-family: monospace;
+  min-height: 120px;
+}
+
+.result {
+  background: #fff3cd;
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+  display: none;
+}
+
+.status {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.success { color: green; }
+.error { color: red; }
+
+/* Tooltip */
+.tooltip {
+  position: relative;
+  cursor: help;
+  color: #4f7cff;
+}
+
+.tooltip:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  top: 120%;
+  left: 0;
+  width: 230px;
+  z-index: 10;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🎮 API Learning Playground</h1>
+
+<!-- INTRO -->
+<div class="card">
+<h2>🍔 API = Waiter</h2>
+<p>
+<span class="tooltip" data-tip="Your browser or app">Client</span> →
+<span class="tooltip" data-tip="Messenger between apps">API</span> →
+<span class="tooltip" data-tip="Computer storing data">Server</span>
+</p>
+</div>
+
+<!-- DIAGRAM -->
+<div class="card">
+<h2>🔁 API Flow (Watch it move)</h2>
+
+<div class="diagram">
+  <div class="box tooltip" data-tip="You click buttons here">👩‍💻 Client</div>
+  <div class="box tooltip" data-tip="Receives & sends data">🤝 API</div>
+  <div class="box tooltip" data-tip="Returns information">🖥️ Server</div>
+
+  <div class="packet" id="packet">Request</div>
+</div>
+</div>
+
+<!-- API BUILDER -->
+<div class="card">
+<h2>🧪 API Request Builder</h2>
+
+<label>🌍 Choose a safe API:</label>
+<select onchange="fillApi(this.value)">
+  <option value="">-- Select --</option>
+  <option value="https://official-joke-api.appspot.com/random_joke">Random Joke</option>
+  <option value="https://api.agify.io?name=alex">Predict Age</option>
+  <option value="https://api.genderize.io?name=sam">Predict Gender</option>
+  <option value="BROKEN">❌ Broken API (Challenge)</option>
+</select>
+
+<label>🔗 API URL:</label>
+<input id="apiUrl" value="https://official-joke-api.appspot.com/random_joke">
+
+<button onclick="callAPI()">📡 Call API</button>
+
+<div class="log" id="log">Waiting for request...</div>
+<div class="status" id="status"></div>
+<div class="result" id="result"></div>
+</div>
+
+<!-- CHALLENGE -->
+<div class="card">
+<h2>🎮 Mini Challenge</h2>
+<p>
+❓ Select the <b>Broken API</b> and try to fix it.<br>
+Hint: Check spelling, HTTPS, or missing path.
+</p>
+</div>
+
+</div>
+
+<script>
+function fillApi(value) {
+  const input = document.getElementById("apiUrl");
+  if (value === "BROKEN") {
+    input.value = "https://official-joke-api.appspot.com/random_jok";
+  } else if (value) {
+    input.value = value;
+  }
+}
+
+async function callAPI() {
+  const packet = document.getElementById("packet");
+  const log = document.getElementById("log");
+  const result = document.getElementById("result");
+  const status = document.getElementById("status");
+  const url = document.getElementById("apiUrl").value;
+
+  result.style.display = "none";
+  status.innerHTML = "";
+  log.innerHTML = "📨 Client: Sending request...";
+
+  packet.style.display = "block";
+  packet.innerText = "Request";
+  packet.style.left = "10%";
+
+  setTimeout(() => packet.style.left = "45%", 500);
+  setTimeout(() => packet.style.left = "75%", 1000);
+
+  try {
+    await new Promise(r => setTimeout(r, 1500));
+    log.innerHTML += "<br>🤝 API: Contacting server...";
+
+    const response = await fetch(url);
+
+    status.innerHTML = `HTTP Status: ${response.status}`;
+    status.className = response.ok ? "status success" : "status error";
+
+    const data = await response.json();
+
+    packet.innerText = "Response";
+    setTimeout(() => packet.style.left = "45%", 500);
+    setTimeout(() => packet.style.left = "10%", 1000);
+
+    await new Promise(r => setTimeout(r, 1500));
+    packet.style.display = "none";
+
+    log.innerHTML += "<br>✅ Client: Data received!";
+
+    result.style.display = "block";
+    result.innerHTML =
+      "<b>📦 API Response:</b><pre>" +
+      JSON.stringify(data, null, 2) +
+      "</pre>";
+
+  } catch (e) {
+    packet.style.display = "none";
+    log.innerHTML += "<br>❌ API failed!";
+    status.innerHTML = "HTTP Status: Error";
+    status.className = "status error";
+  }
+}
+</script>
+
+</body>
+</html>
