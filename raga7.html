@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Melakarta Raga Atlas – 36 Ragas with Audio</title>
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#0f172a;
+  color:white;
+  text-align:center;
+  padding:20px;
+}
+header { margin-bottom:20px; }
+select { padding:8px 12px; font-size:16px; }
+#scene {
+  position: relative;
+  width: 90%;
+  max-width:900px;
+  height:400px;
+  margin:auto;
+  overflow:hidden;
+  border-radius:12px;
+  background:#011428;
+}
+.waves { position:absolute; bottom:0; width:200%; height:50px; }
+.wave1 { fill: rgba(255,255,255,0.3); animation: waveMove 6s infinite linear; }
+.wave2 { fill: rgba(255,255,255,0.2); animation: waveMove 5s infinite linear reverse; }
+@keyframes waveMove { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
+.notes,.desc { margin-top:8px; }
+#audioContainer {
+  margin-top:12px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+audio { width:90%; max-width:600px; border-radius:6px; }
+#audioError { color:#f87171; font-size:14px; display:none; }
+#audioStatus { color:#94a3b8; font-size:13px; }
+</style>
+</head>
+<body>
+
+<header>
+<h1>Melakarta Raga Atlas – 36 Ragas with Audio</h1>
+<p>Select a raga to generate its landscape and play Tamil songs</p>
+<select id="ragaSelect"></select>
+</header>
+
+<div id="scene">
+  <div id="particles-js"></div>
+  <svg class="waves" viewBox="0 0 1200 50" preserveAspectRatio="none">
+    <path class="wave1" d="M0 30 Q300 60 600 30 T1200 30 V50 H0 Z"></path>
+    <path class="wave2" d="M0 30 Q300 20 600 30 T1200 30 V50 H0 Z"></path>
+  </svg>
+</div>
+
+<div class="notes" id="notesDisplay"></div>
+<div class="desc" id="descDisplay"></div>
+
+<div id="audioContainer">
+  <audio id="audioPlayer" controls preload="metadata">
+    Your browser does not support the audio element.
+  </audio>
+  <span id="audioError">⚠️ Audio file not found. Please check the file path.</span>
+  <span id="audioStatus">🎵 Using demo audio samples from SoundHelix</span>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script>
+// Sample 36 Melakarta ragas data with WEB audio URLs
+// Using SoundHelix demo audio files (publicly available) [[63]][[66]]
+const ragas = [
+  {name:"Kanakangi", notes:"S R1 G1 M1 P D1 N1 S", mood:"#f87171", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
+  {name:"Ratnangi", notes:"S R1 G1 M1 P D1 N2 S", mood:"#fbbf24", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
+  {name:"Ganamurti", notes:"S R1 G1 M1 P D2 N2 S", mood:"#34d399", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"},
+  {name:"Vanaspati", notes:"S R1 G1 M1 P D2 N2 S", mood:"#60a5fa", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"},
+  {name:"Manavati", notes:"S R1 G2 M1 P D1 N1 S", mood:"#f472b6", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"},
+  {name:"Tanarupi", notes:"S R1 G2 M1 P D1 N2 S", mood:"#facc15", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"},
+  {name:"Senavati", notes:"S R1 G2 M1 P D2 N2 S", mood:"#22d3ee", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"},
+  {name:"Hanumatodi", notes:"S R1 G2 M1 P D1 N2 S", mood:"#f43f5e", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"},
+  {name:"Dhenuka", notes:"S R1 G2 M1 P D2 N2 S", mood:"#a78bfa", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"},
+  {name:"Natakapriya", notes:"S R1 G3 M1 P D1 N1 S", mood:"#f97316", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"},
+  {name:"Kokilapriya", notes:"S R1 G3 M1 P D1 N2 S", mood:"#14b8a6", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
+  {name:"Rupavati", notes:"S R1 G3 M1 P D2 N2 S", mood:"#f43f5e", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
+  {name:"Gayakapriya", notes:"S R2 G1 M1 P D1 N1 S", mood:"#22c55e", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"},
+  {name:"Vakulabharanam", notes:"S R2 G1 M1 P D1 N2 S", mood:"#60a5fa", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"},
+  {name:"Mayamalavagowla", notes:"S R1 G3 M1 P D1 N3 S", mood:"#fbbf24", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"},
+  {name:"Chakravakam", notes:"S R1 G3 M1 P D2 N3 S", mood:"#f472b6", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"},
+  {name:"Suryakantam", notes:"S R2 G2 M1 P D1 N2 S", mood:"#34d399", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"},
+  {name:"Hatakambari", notes:"S R2 G2 M1 P D2 N2 S", mood:"#f87171", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"},
+  {name:"Jhankaradhvani", notes:"S R2 G2 M1 P D2 N3 S", mood:"#facc15", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"},
+  {name:"Natabhairavi", notes:"S R2 G2 M1 P D1 N1 S", mood:"#22d3ee", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"},
+  {name:"Kharaharapriya", notes:"S R2 G2 M1 P D2 N2 S", mood:"#f43f5e", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
+  {name:"Gourimanohari", notes:"S R2 G3 M1 P D2 N3 S", mood:"#a78bfa", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
+  {name:"Varunapriya", notes:"S R3 G3 M1 P D3 N3 S", mood:"#14b8a6", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"},
+  {name:"Mararanjani", notes:"S R3 G3 M2 P D3 N3 S", mood:"#f97316", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"},
+  {name:"Vachaspati", notes:"S R1 G3 M2 P D2 N3 S", mood:"#fbbf24", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"},
+  {name:"Mechakalyani", notes:"S R2 G3 M2 P D2 N3 S", mood:"#22c55e", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3"},
+  {name:"Chakravathi", notes:"S R3 G3 M2 P D3 N3 S", mood:"#60a5fa", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3"},
+  {name:"Sulini", notes:"S R3 G3 M2 P D3 N3 S", mood:"#f87171", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"},
+  {name:"Chalanata", notes:"S R3 G3 M2 P D3 N3 S", mood:"#f43f5e", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3"},
+  {name:"Salagam", notes:"S R1 G1 M2 P D1 N1 S", mood:"#fbbf24", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3"},
+  {name:"Jhalavarali", notes:"S R1 G1 M2 P D2 N2 S", mood:"#34d399", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
+  {name:"Navaneetam", notes:"S R1 G2 M2 P D2 N2 S", mood:"#60a5fa", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
+  {name:"Pavani", notes:"S R2 G2 M2 P D2 N3 S", mood:"#facc15", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"},
+  {name:"Ragavardhani", notes:"S R2 G3 M2 P D2 N3 S", mood:"#f472b6", audio:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"}
+];
+
+// Populate dropdown
+const select = document.getElementById("ragaSelect");
+ragas.forEach((raga,i)=>{
+  const opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = raga.name;
+  select.appendChild(opt);
+});
+
+const audioPlayer = document.getElementById("audioPlayer");
+const audioError = document.getElementById("audioError");
+const audioStatus = document.getElementById("audioStatus");
+
+function updateScene(index){
+  const r = ragas[index];
+  document.getElementById("notesDisplay").textContent = `Notes: ${r.notes}`;
+  document.getElementById("descDisplay").textContent = r.name + " Raga";
+  document.getElementById("scene").style.background = `linear-gradient(to top, ${r.mood} 0%, #011428 100%)`;
+  
+  // Reset error message
+  audioError.style.display = "none";
+  audioStatus.style.display = "block";
+  
+  // Update audio source with web URL
+  audioPlayer.src = r.audio;
+  audioPlayer.load();
+  
+  // Show loading status
+  audioStatus.textContent = `🎵 Loading: ${r.name}...`;
+  
+  // Attempt to play (will work after user interaction)
+  const playPromise = audioPlayer.play();
+  if (playPromise !== undefined) {
+    playPromise.then(_ => {
+      audioStatus.textContent = `▶️ Now Playing: ${r.name}`;
+    })
+    .catch(error => {
+      audioStatus.textContent = `🔊 Click play button to start ${r.name} (browser policy)`;
+      console.log("Autoplay prevented:", error);
+    });
+  }
+}
+
+// Initialize particles
+particlesJS("particles-js",{
+  "particles": {"number":{"value":80},"color":{"value":"#ffffff"},"shape":{"type":"circle"},"opacity":{"value":0.6},"size":{"value":3},"move":{"speed":1}},
+  "interactivity":{"events":{"onhover":{"enable":true,"mode":"repulse"}}}
+});
+
+// Audio event listeners
+audioPlayer.addEventListener("error", function(e) {
+  audioError.style.display = "block";
+  audioStatus.textContent = "❌ Error loading audio";
+  console.error("Audio load error:", e);
+});
+
+audioPlayer.addEventListener("loadeddata", function() {
+  audioStatus.textContent = `✅ Ready: ${ragas[select.value].name}`;
+});
+
+audioPlayer.addEventListener("play", function() {
+  audioStatus.textContent = `▶️ Playing: ${ragas[select.value].name}`;
+});
+
+audioPlayer.addEventListener("pause", function() {
+  audioStatus.textContent = `⏸️ Paused: ${ragas[select.value].name}`;
+});
+
+// Initial draw
+updateScene(0);
+
+// Dropdown change
+select.addEventListener("change",(e)=> updateScene(parseInt(e.target.value)));
+</script>
+</body>
+</html>
