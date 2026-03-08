@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Melakarta Raga Atlas – 36 Ragas</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#0f172a;
+color:white;
+text-align:center;
+padding:20px;
+}
+
+select{
+padding:10px 16px;
+font-size:18px;
+border-radius:6px;
+border:none;
+background:#1e293b;
+color:white;
+cursor:pointer;
+}
+
+#scene{
+position:relative;
+width:90%;
+max-width:900px;
+height:400px;
+margin:20px auto;
+overflow:hidden;
+border-radius:12px;
+background:#011428;
+}
+
+.waves{
+position:absolute;
+bottom:0;
+width:200%;
+height:60px;
+}
+
+.wave1{
+fill:rgba(255,255,255,.3);
+animation:waveMove 8s infinite linear;
+}
+
+.wave2{
+fill:rgba(255,255,255,.15);
+animation:waveMove 6s infinite linear reverse;
+}
+
+@keyframes waveMove{
+0%{transform:translateX(0)}
+100%{transform:translateX(-50%)}
+}
+
+.notes,.desc{
+margin:12px 0;
+font-size:18px;
+}
+
+.youtube-container{
+position:relative;
+padding-bottom:56.25%;
+height:0;
+overflow:hidden;
+max-width:700px;
+margin:20px auto;
+border-radius:8px;
+background:#000;
+}
+
+.youtube-container iframe{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:100%;
+border:0;
+}
+
+#errorMsg{
+color:#f87171;
+font-weight:bold;
+margin:10px;
+}
+
+#videoStatus{
+color:#94a3b8;
+font-size:14px;
+margin:5px 0;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Melakarta Raga Atlas – 36 Ragas</h1>
+<p>Select a raga to see its landscape & watch a YouTube demo</p>
+
+<select id="ragaSelect"></select>
+
+<div id="scene">
+
+<div id="particles-js"></div>
+
+<svg class="waves" viewBox="0 0 1200 60" preserveAspectRatio="none">
+<path class="wave1" d="M0 40 Q300 70 600 40 T1200 40 V60 H0 Z"></path>
+<path class="wave2" d="M0 40 Q300 10 600 40 T1200 40 V60 H0 Z"></path>
+</svg>
+
+</div>
+
+<div class="notes" id="notesDisplay"></div>
+<div class="desc" id="descDisplay"></div>
+
+<div class="youtube-container">
+<iframe
+id="playerIframe"
+src=""
+allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+allowfullscreen
+loading="lazy"
+referrerpolicy="strict-origin-when-cross-origin"
+title="Raga Demo Video">
+</iframe>
+</div>
+
+<div id="videoStatus">🎬 Select a raga</div>
+<div id="errorMsg"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
+<script>
+
+const ragas = [
+
+{ name:"Kanakangi", notes:"S R1 G1 M1 P D1 N1 S", mood:"#f87171", youtubeId:"dQw4w9WgXcQ"},
+{ name:"Ratnangi", notes:"S R1 G1 M1 P D1 N2 S", mood:"#fbbf24", youtubeId:"dQw4w9WgXcQ"},
+{ name:"Ganamurti", notes:"S R1 G1 M1 P D2 N2 S", mood:"#34d399", youtubeId:"dQw4w9WgXcQ"},
+{ name:"Vanaspati", notes:"S R1 G1 M1 P D2 N2 S", mood:"#60a5fa", youtubeId:"dQw4w9WgXcQ"},
+{ name:"Manavati", notes:"S R1 G2 M1 P D1 N1 S", mood:"#f472b6", youtubeId:"dQw4w9WgXcQ"},
+{ name:"Tanarupi", notes:"S R1 G2 M1 P D1 N2 S", mood:"#facc15", youtubeId:"dQw4w9WgXcQ"},
+{ name:"Senavati", notes:"S R1 G2 M1 P D2 N2 S", mood:"#22d3ee", youtubeId:"dQw4w9WgXcQ"},
+{ name:"Hanumatodi", notes:"S R1 G2 M1 P D1 N2 S", mood:"#f43f5e", youtubeId:"739A-p5WbMs"},
+{ name:"Dhenuka", notes:"S R1 G2 M1 P D2 N2 S", mood:"#a78bfa", youtubeId:"739A-p5WbMs"},
+{ name:"Natakapriya", notes:"S R1 G3 M1 P D1 N1 S", mood:"#f97316", youtubeId:"6KVlRXkZaI8"},
+{ name:"Kokilapriya", notes:"S R1 G3 M1 P D1 N2 S", mood:"#14b8a6", youtubeId:"6KVlRXkZaI8"},
+{ name:"Rupavati", notes:"S R1 G3 M1 P D2 N2 S", mood:"#f43f5e", youtubeId:"6KVlRXkZaI8"},
+{ name:"Gayakapriya", notes:"S R2 G1 M1 P D1 N1 S", mood:"#22c55e", youtubeId:"6KVlRXkZaI8"},
+{ name:"Vakulabharanam", notes:"S R2 G1 M1 P D1 N2 S", mood:"#60a5fa", youtubeId:"6KVlRXkZaI8"},
+{ name:"Mayamalavagowla", notes:"S R1 G3 M1 P D1 N3 S", mood:"#fbbf24", youtubeId:"BES_G8-oKwk"},
+{ name:"Chakravakam", notes:"S R1 G3 M1 P D2 N3 S", mood:"#f472b6", youtubeId:"BES_G8-oKwk"},
+{ name:"Suryakantam", notes:"S R2 G2 M1 P D1 N2 S", mood:"#34d399", youtubeId:"yXmSvVSDSqk"},
+{ name:"Hatakambari", notes:"S R2 G2 M1 P D2 N2 S", mood:"#f87171", youtubeId:"yXmSvVSDSqk"},
+{ name:"Jhankaradhvani", notes:"S R2 G2 M1 P D2 N3 S", mood:"#facc15", youtubeId:"yXmSvVSDSqk"},
+{ name:"Natabhairavi", notes:"S R2 G2 M1 P D1 N1 S", mood:"#22d3ee", youtubeId:"yXmSvVSDSqk"},
+{ name:"Kharaharapriya", notes:"S R2 G2 M1 P D2 N2 S", mood:"#f43f5e", youtubeId:"9mUurcBD4o4"},
+{ name:"Gourimanohari", notes:"S R2 G3 M1 P D2 N3 S", mood:"#a78bfa", youtubeId:"9mUurcBD4o4"}
+
+];
+
+const select = document.getElementById("ragaSelect");
+const iframe = document.getElementById("playerIframe");
+const errorMsg = document.getElementById("errorMsg");
+const videoStatus = document.getElementById("videoStatus");
+
+ragas.forEach((r,i)=>{
+const opt=document.createElement("option");
+opt.value=i;
+opt.textContent=r.name;
+select.appendChild(opt);
+});
+
+function updateScene(i){
+
+const r = ragas[i];
+
+document.getElementById("notesDisplay").textContent =
+"Arohana / Notes: "+r.notes;
+
+document.getElementById("descDisplay").textContent =
+r.name+" – Melakarta Raga";
+
+document.getElementById("scene").style.background =
+`linear-gradient(to top, ${r.mood}88 0%, #011428 100%)`;
+
+errorMsg.textContent="";
+videoStatus.textContent="🎬 Loading "+r.name+"...";
+
+/* --- YOUTUBE FIX --- */
+
+const origin = location.origin || "http://localhost";
+
+iframe.src =
+`https://www.youtube-nocookie.com/embed/${r.youtubeId}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${origin}`;
+
+iframe.onload = () =>{
+videoStatus.textContent="✅ Ready: "+r.name;
+};
+
+}
+
+select.addEventListener("change",(e)=>{
+updateScene(parseInt(e.target.value));
+});
+
+updateScene(0);
+
+/* particles */
+
+particlesJS("particles-js",{
+particles:{
+number:{value:80},
+color:{value:"#ffffff"},
+shape:{type:"circle"},
+opacity:{value:.5},
+size:{value:3},
+move:{speed:1}
+},
+interactivity:{
+events:{onhover:{enable:true,mode:"repulse"}}
+}
+});
+
+</script>
+
+</body>
+</html>
