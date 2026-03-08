@@ -1,432 +1,507 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <title>Melakarta Raga Atlas – 36 Ragas</title>
-        <style>
-            body {
-                margin: 0;
-                font-family: Arial, sans-serif;
-                background: #0f172a;
-                color: white;
-                text-align: center;
-                padding: 20px;
-            }
-            header {
-                margin-bottom: 20px;
-            }
-            select {
-                padding: 10px 16px;
-                font-size: 18px;
-                border-radius: 6px;
-                border: none;
-                background: #1e293b;
-                color: white;
-                cursor: pointer;
-            }
-            #scene {
-                position: relative;
-                width: 90%;
-                max-width: 900px;
-                height: 400px;
-                margin: 20px auto;
-                overflow: hidden;
-                border-radius: 12px;
-                background: #011428;
-            }
-            .waves {
-                position: absolute;
-                bottom: 0;
-                width: 200%;
-                height: 60px;
-            }
-            .wave1 {
-                fill: rgba(255, 255, 255, 0.3);
-                animation: waveMove 8s infinite linear;
-            }
-            .wave2 {
-                fill: rgba(255, 255, 255, 0.15);
-                animation: waveMove 6s infinite linear reverse;
-            }
-            @keyframes waveMove {
-                0% {
-                    transform: translateX(0);
-                }
-                100% {
-                    transform: translateX(-50%);
-                }
-            }
-            .notes,
-            .desc {
-                margin: 12px 0;
-                font-size: 18px;
-            }
-            .desc {
-                font-size: 24px;
-                font-weight: bold;
-                background: linear-gradient(90deg, var(--raga-mood), white);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                animation: glow 2s infinite alternate;
-                margin: 20px 0;
-            }
-            @keyframes glow {
-                from {
-                    text-shadow: 0 0 10px var(--raga-mood-88);
-                }
-                to {
-                    text-shadow: 0 0 20px var(--raga-mood);
-                }
-            }
-            #swaraDisplay {
-                font-size: 28px;
-                letter-spacing: 8px;
-                margin: 15px 0;
-                animation: fadeIn 1s ease-in;
-            }
-            #swaraDisplay span {
-                transition: all 0.3s;
-                animation: pulse 2s infinite;
-            }
-            #swaraDisplay span:hover {
-                transform: scale(1.2);
-                text-shadow: 0 0 10px var(--raga-mood);
-            }
-            @keyframes fadeIn {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            @keyframes pulse {
-                0%,
-                100% {
-                    opacity: 1;
-                }
-                50% {
-                    opacity: 0.7;
-                }
-            }
-            .youtube-container {
-                position: relative;
-                padding-bottom: 56.25%;
-                height: 0;
-                overflow: hidden;
-                max-width: 700px;
-                margin: 20px auto;
-                border-radius: 8px;
-                background: #000;
-            }
-            .youtube-container iframe {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                border: 0;
-            }
-            .loading {
-                border: 4px solid #1e293b;
-                border-top: 4px solid var(--raga-mood);
-                border-radius: 50%;
-                width: 30px;
-                height: 30px;
-                animation: spin 1s linear infinite;
-                margin: 10px auto;
-                display: none; /* Hidden until loading */
-            }
-            @keyframes spin {
-                0% {
-                    transform: rotate(0deg);
-                }
-                100% {
-                    transform: rotate(360deg);
-                }
-            }
-            #errorMsg {
-                color: #f87171;
-                font-weight: bold;
-                margin: 10px;
-            }
-            #videoStatus {
-                color: #94a3b8;
-                font-size: 14px;
-                margin: 5px 0;
-            }
-            /* Responsive for mobile */
-            @media (max-width: 600px) {
-                select {
-                    width: 100%;
-                    font-size: 16px;
-                }
-                .youtube-container {
-                    max-width: 100%;
-                }
-                h1 {
-                    font-size: 1.8rem;
-                }
-                #scene {
-                    width: 100%;
-                    height: 300px;
-                }
-                #swaraDisplay {
-                    font-size: 22px;
-                    letter-spacing: 4px;
-                }
-                .desc {
-                    font-size: 20px;
-                }
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Melakarta Raga Atlas – 36 Ragas</h1>
-        <p>Select a raga to see its landscape & watch a YouTube demo</p>
-        <select id="ragaSelect"></select>
-        <div id="scene">
-            <div id="particles-js"></div>
-            <svg class="waves" viewBox="0 0 1200 60" preserveAspectRatio="none">
-                <path
-                    class="wave1"
-                    d="M0 40 Q300 70 600 40 T1200 40 V60 H0 Z"
-                ></path>
-                <path
-                    class="wave2"
-                    d="M0 40 Q300 10 600 40 T1200 40 V60 H0 Z"
-                ></path>
-            </svg>
-        </div>
-        <div class="notes" id="notesDisplay"></div>
-        <div id="swaraDisplay"></div>
-        <div class="desc" id="descDisplay"></div>
-        <div class="youtube-container">
-            <iframe
-                id="playerIframe"
-                src=""
-                allow="
-                    accelerometer;
-                    autoplay;
-                    clipboard-write;
-                    encrypted-media;
-                    gyroscope;
-                    picture-in-picture;
-                    web-share;
-                "
-                allowfullscreen
-                loading="lazy"
-                referrerpolicy="strict-origin-when-cross-origin"
-                title="Raga Demo Video"
-            >
-            </iframe>
-        </div>
-        <div id="videoStatus">🎬 Select a raga</div>
-        <div class="loading" id="spinner"></div>
-        <div id="errorMsg"></div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
-        <script>
-            const ragas = [
-                {
-                    name: "Kanakangi",
-                    notes: "S R1 G1 M1 P D1 N1 S",
-                    mood: "#f87171",
-                    youtubeId: "RncnfQKhLzY",
-                },
-                {
-                    name: "Ratnangi",
-                    notes: "S R1 G1 M1 P D1 N2 S",
-                    mood: "#fbbf24",
-                    youtubeId: "REmEGWy5D4k",
-                },
-                {
-                    name: "Ganamurti",
-                    notes: "S R1 G1 M1 P D2 N2 S",
-                    mood: "#34d399",
-                    youtubeId: "cs1SwomIsuI",
-                },
-                {
-                    name: "Vanaspati",
-                    notes: "S R1 G1 M1 P D2 N2 S",
-                    mood: "#60a5fa",
-                    youtubeId: "bShSYieL5m8",
-                },
-                {
-                    name: "Manavati",
-                    notes: "S R1 G2 M1 P D1 N1 S",
-                    mood: "#f472b6",
-                    youtubeId: "rBQ-A69WoDY",
-                },
-                {
-                    name: "Tanarupi",
-                    notes: "S R1 G2 M1 P D1 N2 S",
-                    mood: "#facc15",
-                    youtubeId: "REmEGWy5D4k",
-                },
-                {
-                    name: "Senavati",
-                    notes: "S R1 G2 M1 P D2 N2 S",
-                    mood: "#22d3ee",
-                    youtubeId: "REmEGWy5D4k",
-                },
-                {
-                    name: "Hanumatodi",
-                    notes: "S R1 G2 M1 P D1 N2 S",
-                    mood: "#f43f5e",
-                    youtubeId: "739A-p5WbMs",
-                },
-                {
-                    name: "Dhenuka",
-                    notes: "S R1 G2 M1 P D2 N2 S",
-                    mood: "#a78bfa",
-                    youtubeId: "739A-p5WbMs",
-                },
-                {
-                    name: "Natakapriya",
-                    notes: "S R1 G3 M1 P D1 N1 S",
-                    mood: "#f97316",
-                    youtubeId: "6KVlRXkZaI8",
-                },
-                {
-                    name: "Kokilapriya",
-                    notes: "S R1 G3 M1 P D1 N2 S",
-                    mood: "#14b8a6",
-                    youtubeId: "6KVlRXkZaI8",
-                },
-                {
-                    name: "Rupavati",
-                    notes: "S R1 G3 M1 P D2 N2 S",
-                    mood: "#f43f5e",
-                    youtubeId: "6KVlRXkZaI8",
-                },
-                {
-                    name: "Gayakapriya",
-                    notes: "S R2 G1 M1 P D1 N1 S",
-                    mood: "#22c55e",
-                    youtubeId: "6KVlRXkZaI8",
-                },
-                {
-                    name: "Vakulabharanam",
-                    notes: "S R2 G1 M1 P D1 N2 S",
-                    mood: "#60a5fa",
-                    youtubeId: "6KVlRXkZaI8",
-                },
-                {
-                    name: "Mayamalavagowla",
-                    notes: "S R1 G3 M1 P D1 N3 S",
-                    mood: "#fbbf24",
-                    youtubeId: "BES_G8-oKwk",
-                },
-                {
-                    name: "Chakravakam",
-                    notes: "S R1 G3 M1 P D2 N3 S",
-                    mood: "#f472b6",
-                    youtubeId: "BES_G8-oKwk",
-                },
-                {
-                    name: "Suryakantam",
-                    notes: "S R2 G2 M1 P D1 N2 S",
-                    mood: "#34d399",
-                    youtubeId: "yXmSvVSDSqk",
-                },
-                {
-                    name: "Hatakambari",
-                    notes: "S R2 G2 M1 P D2 N2 S",
-                    mood: "#f87171",
-                    youtubeId: "yXmSvVSDSqk",
-                },
-                {
-                    name: "Jhankaradhvani",
-                    notes: "S R2 G2 M1 P D2 N3 S",
-                    mood: "#facc15",
-                    youtubeId: "yXmSvVSDSqk",
-                },
-                {
-                    name: "Natabhairavi",
-                    notes: "S R2 G2 M1 P D1 N1 S",
-                    mood: "#22d3ee",
-                    youtubeId: "yXmSvVSDSqk",
-                },
-                {
-                    name: "Kharaharapriya",
-                    notes: "S R2 G2 M1 P D2 N2 S",
-                    mood: "#f43f5e",
-                    youtubeId: "9mUurcBD4o4",
-                },
-                {
-                    name: "Gourimanohari",
-                    notes: "S R2 G3 M1 P D2 N3 S",
-                    mood: "#a78bfa",
-                    youtubeId: "9mUurcBD4o4",
-                },
-            ];
-            const select = document.getElementById("ragaSelect");
-            const iframe = document.getElementById("playerIframe");
-            const errorMsg = document.getElementById("errorMsg");
-            const videoStatus = document.getElementById("videoStatus");
-            const spinner = document.getElementById("spinner");
-            const swaraDisplay = document.getElementById("swaraDisplay");
-            const descDisplay = document.getElementById("descDisplay");
-            const scene = document.getElementById("scene");
-            const wave1 = document.querySelector(".wave1");
-            const wave2 = document.querySelector(".wave2");
-            ragas.forEach((r, i) => {
-                const opt = document.createElement("option");
-                opt.value = i;
-                opt.textContent = r.name;
-                select.appendChild(opt);
-            });
-            function updateScene(i) {
-                const r = ragas[i];
-                document.getElementById("notesDisplay").textContent =
-                    "Arohana / Notes: " + r.notes;
-                descDisplay.textContent = r.name + " – Melakarta Raga";
-                scene.style.background = `linear-gradient(to top, ${r.mood}88 0%, #011428 100%)`;
-                // Glow & gradient for desc (dynamic CSS vars)
-                descDisplay.style.setProperty("--raga-mood", r.mood);
-                descDisplay.style.setProperty("--raga-mood-88", r.mood + "88");
-                // Wave color sync
-                wave1.style.fill = r.mood + "55";
-                wave2.style.fill = r.mood + "33";
-                // Animated swaras
-                swaraDisplay.innerHTML = r.notes
-                    .split(" ")
-                    .map(
-                        (s) =>
-                            `<span style="color:${s === "S" ? "#fff" : r.mood}">${s}</span>`,
-                    )
-                    .join(" ");
-                errorMsg.textContent = "";
-                videoStatus.textContent = "Loading " + r.name + "...";
-                spinner.style.display = "block"; // Show spinner
-                const origin = location.origin || "http://localhost";
-                iframe.src = `https://www.youtube-nocookie.com/embed/${r.youtubeId}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${origin}`;
-                // Particles reload with mood
-                particlesJS("particles-js", {
-                    particles: {
-                        number: { value: 80 + i * 2 }, // More for later ragas
-                        color: { value: r.mood },
-                        shape: { type: "circle" },
-                        opacity: { value: 0.5 },
-                        size: { value: 3 },
-                        move: { speed: 1 },
-                    },
-                    interactivity: {
-                        events: { onhover: { enable: true, mode: "repulse" } },
-                    },
-                });
-                iframe.onload = () => {
-                    spinner.style.display = "none";
-                    videoStatus.textContent = "✅ Ready: " + r.name;
-                };
-            }
-            select.addEventListener("change", (e) => {
-                updateScene(parseInt(e.target.value));
-            });
-            updateScene(0);
-        </script>
-    </body>
-</html>
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>🎵 Melakarta Raga Atlas – 72 Ragas with Scenery</title>
+<style>
+* { box-sizing: border-box; }
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#0f172a;
+  color:white;
+  text-align:center;
+  padding:20px;
+  line-height:1.5;
+}
+header { margin-bottom:20px; }
+h1 { 
+  margin:0 0 10px; 
+  font-size:2rem;
+  background:linear-gradient(90deg,#f87171,#fbbf24,#34d399,#60a5fa);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+select{
+  padding:10px 16px;
+  font-size:18px;
+  border-radius:6px;
+  border:none;
+  background:#1e293b;
+  color:white;
+  cursor:pointer;
+  max-width:100%;
+  width:300px;
+}
+select:hover { background:#334155; }
+#scene{
+  position:relative;
+  width:90%;
+  max-width:900px;
+  height:400px;
+  margin:20px auto;
+  overflow:hidden;
+  border-radius:12px;
+  background:#011428;
+  box-shadow:0 10px 40px rgba(0,0,0,0.4);
+}
+
+/* === LAYERING FIX: Scenery on top, particles behind === */
+#sceneryOverlay {
+  position:absolute;
+  top:0; left:0; right:0; bottom:0;
+  pointer-events:none;
+  z-index:10;
+  border-radius:12px;
+  overflow:hidden;
+}
+#particles-js {
+  position:absolute;
+  top:0; left:0; right:0; bottom:0;
+  z-index:5;
+}
+#particles-js canvas { z-index:5 !important; }
+.waves{
+  position:absolute;
+  bottom:0;
+  width:200%;
+  height:60px;
+  z-index:20;
+}
+.wave1{
+  fill:rgba(255,255,255,.3);
+  animation:waveMove 8s infinite linear;
+}
+.wave2{
+  fill:rgba(255,255,255,.15);
+  animation:waveMove 6s infinite linear reverse;
+}
+@keyframes waveMove{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-50%)}
+}
+
+/* === SCENERY BACKGROUNDS (Enhanced Visibility) === */
+.moonlit-pond { 
+  background:linear-gradient(to bottom, rgba(100,150,255,0.5), rgba(50,50,100,0.6)); 
+  animation:moonlight 15s infinite ease-in-out; 
+}
+.moonlit-pond::before {
+  content:""; position:absolute; top:30px; right:60px; width:40px; height:40px;
+  background:radial-gradient(circle,#fff 0%,rgba(255,255,200,0.8) 40%,transparent 70%);
+  border-radius:50%; box-shadow:0 0 30px rgba(200,220,255,0.6);
+  animation:pulse 4s infinite ease-in-out;
+}
+.moonlit-pond::after {
+  content:""; position:absolute; top:0; left:0; right:0; bottom:0;
+  background-image:radial-gradient(rgba(255,255,255,0.3) 1px, transparent 1px);
+  background-size:50px 50px; opacity:0.4;
+}
+
+.dawn-gaze { 
+  background:linear-gradient(to bottom, rgba(255,200,100,0.5), rgba(255,150,50,0.6)); 
+  animation:sunrise 20s infinite ease-in-out; 
+}
+.dawn-gaze::before {
+  content:""; position:absolute; bottom:20%; left:10%; width:80px; height:80px;
+  background:radial-gradient(circle,#fff7e6 0%,rgba(255,200,100,0.6) 50%,transparent 80%);
+  border-radius:50%; filter:blur(10px);
+}
+
+.fiery-sunset { 
+  background:linear-gradient(to bottom, rgba(255,100,50,0.6), rgba(150,50,0,0.5)); 
+  animation:sunset 18s infinite ease-in-out; 
+}
+.fiery-sunset::before {
+  content:""; position:absolute; bottom:0; left:0; right:0; height:30%;
+  background:linear-gradient(to top, rgba(100,30,0,0.8), transparent);
+}
+
+.ancient-forest { 
+  background:linear-gradient(to bottom, rgba(50,150,50,0.5), rgba(0,100,0,0.6)); 
+  animation:forest 25s infinite ease-in-out; 
+}
+.ancient-forest::before {
+  content:""; position:absolute; bottom:0; left:10%; width:15%; height:60%;
+  background:linear-gradient(to top, #2d5016, transparent);
+  border-radius:50% 50% 0 0;
+  box-shadow:30px 0 0 #1a3009, 60px 0 0 #2d5016, 90px 0 0 #1a3009;
+}
+
+.dynamic-river { 
+  background:linear-gradient(to bottom, rgba(100,200,255,0.5), rgba(50,150,200,0.6)); 
+  animation:river 12s infinite ease-in-out; 
+}
+.dynamic-river::after {
+  content:""; position:absolute; bottom:10%; left:-100%; width:200%; height:20%;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation:flow 3s infinite linear;
+}
+@keyframes flow { 0%{transform:translateX(0)} 100%{transform:translateX(50%)} }
+
+.blooming-garden { 
+  background:linear-gradient(to bottom, rgba(255,150,200,0.5), rgba(200,100,150,0.6)); 
+  animation:bloom 16s infinite ease-in-out; 
+}
+.blooming-garden::before {
+  content:"🌸"; position:absolute; font-size:24px; top:20%; left:15%; 
+  animation:float 3s infinite ease-in-out;
+}
+.blooming-garden::after {
+  content:"🌺"; position:absolute; font-size:20px; bottom:25%; right:20%; 
+  animation:float 4s infinite ease-in-out reverse;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+.sage-mountain { 
+  background:linear-gradient(to bottom, rgba(150,150,150,0.5), rgba(100,100,100,0.6)); 
+  animation:mountain 22s infinite ease-in-out; 
+}
+.sage-mountain::before {
+  content:""; position:absolute; bottom:0; left:0; right:0; height:40%;
+  background:linear-gradient(to top, #555, transparent);
+  clip-path:polygon(0% 100%, 20% 60%, 40% 80%, 60% 50%, 80% 70%, 100% 40%, 100% 100%);
+}
+
+.deity-temple { 
+  background:linear-gradient(to bottom, rgba(255,255,200,0.5), rgba(200,200,100,0.6)); 
+  animation:temple 20s infinite ease-in-out; 
+}
+.deity-temple::before {
+  content:"🛕"; position:absolute; bottom:10%; left:50%; transform:translateX(-50%);
+  font-size:40px; filter:drop-shadow(0 0 10px rgba(255,215,0,0.8));
+}
+
+.cosmic-night { 
+  background:linear-gradient(to bottom, rgba(50,0,100,0.6), rgba(100,0,200,0.5)); 
+  animation:cosmic 30s infinite ease-in-out; 
+}
+.cosmic-night::before {
+  content:""; position:absolute; top:0; left:0; right:0; bottom:0;
+  background-image:radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px);
+  background-size:30px 30px; opacity:0.6;
+  animation:twinkle 2s infinite alternate;
+}
+@keyframes twinkle { 0%{opacity:0.4} 100%{opacity:0.8} }
+
+.windy-plains { 
+  background:linear-gradient(to bottom, rgba(200,200,150,0.5), rgba(150,150,100,0.6)); 
+  animation:wind 14s infinite ease-in-out; 
+}
+.windy-plains::after {
+  content:""; position:absolute; top:30%; left:-50%; width:200%; height:2px;
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation:breeze 4s infinite linear;
+}
+@keyframes breeze { 0%{transform:translateX(0)} 100%{transform:translateX(100%)} }
+
+.stormy-twilight { 
+  background:linear-gradient(to bottom, rgba(100,100,200,0.6), rgba(50,50,150,0.5)); 
+  animation:storm 10s infinite ease-in-out; 
+}
+.stormy-twilight::before {
+  content:"⚡"; position:absolute; font-size:30px; top:15%; right:20%; 
+  animation:flash 0.5s infinite alternate; opacity:0;
+}
+@keyframes flash { 0%{opacity:0; transform:scale(0.8)} 100%{opacity:1; transform:scale(1.2)} }
+
+.bright-midday { 
+  background:linear-gradient(to bottom, rgba(255,255,100,0.5), rgba(255,200,50,0.6)); 
+  animation:midday 18s infinite ease-in-out; 
+}
+.bright-midday::before {
+  content:"☀️"; position:absolute; top:20px; right:40px; font-size:36px;
+  animation:shine 3s infinite ease-in-out;
+}
+@keyframes shine { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.3)} }
+
+/* Animation Keyframes */
+@keyframes sunrise { 0%{opacity:0.4} 50%{opacity:0.7} 100%{opacity:0.4} }
+@keyframes sunset { 0%{opacity:0.5} 50%{opacity:0.8} 100%{opacity:0.5} }
+@keyframes forest { 0%,100%{opacity:0.4} 50%{opacity:0.6} }
+@keyframes river { 0%{transform:translateX(0)} 100%{transform:translateX(-20px)} }
+@keyframes bloom { 0%,100%{opacity:0.5} 50%{opacity:0.7; transform:scale(1.02)} }
+@keyframes mountain { 0%{opacity:0.4} 100%{opacity:0.6} }
+@keyframes temple { 0%,100%{opacity:0.4} 50%{opacity:0.7} }
+@keyframes cosmic { 0%{opacity:0.3} 50%{opacity:0.5} 100%{opacity:0.3} }
+@keyframes wind { 0%{opacity:0.4} 50%{opacity:0.6; transform:translateX(10px)} 100%{opacity:0.4} }
+@keyframes storm { 0%,100%{opacity:0.5} 50%{opacity:0.8} }
+@keyframes midday { 0%{opacity:0.4} 50%{opacity:0.6} 100%{opacity:0.4} }
+@keyframes moonlight { 0%,100%{opacity:0.5} 50%{opacity:0.8} }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+/* Text & UI Styles */
+.notes,.desc{ margin:12px 0; font-size:18px; }
+.desc {
+  font-size:24px; font-weight:bold;
+  background:linear-gradient(90deg, var(--raga-mood), white);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  animation:glow 2s infinite alternate; margin:20px 0;
+}
+@keyframes glow {
+  from{text-shadow:0 0 10px var(--raga-mood-88)}
+  to{text-shadow:0 0 20px var(--raga-mood)}
+}
+#swaraDisplay {
+  font-size:28px; letter-spacing:8px; margin:15px 0;
+  animation:fadeIn 1s ease-in;
+}
+#swaraDisplay span {
+  transition:all 0.3s; animation:pulse 2s infinite; display:inline-block; margin:0 2px;
+}
+#swaraDisplay span:hover {
+  transform:scale(1.2); text-shadow:0 0 10px var(--raga-mood); cursor:pointer;
+}
+@keyframes fadeIn { from{opacity:0; transform:translateY(20px)} to{opacity:1; transform:translateY(0)} }
+
+.youtube-container{
+  position:relative; padding-bottom:56.25%; height:0; overflow:hidden;
+  max-width:700px; margin:20px auto; border-radius:8px; background:#000;
+  box-shadow:0 5px 20px rgba(0,0,0,0.3);
+}
+.youtube-container iframe{
+  position:absolute; top:0; left:0; width:100%; height:100%; border:0;
+}
+.loading {
+  border:4px solid #1e293b; border-top:4px solid var(--raga-mood);
+  border-radius:50%; width:30px; height:30px;
+  animation:spin 1s linear infinite; margin:10px auto; display:none;
+}
+@keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+#errorMsg{ color:#f87171; font-weight:bold; margin:10px; min-height:20px; }
+#videoStatus{ color:#94a3b8; font-size:14px; margin:5px 0; }
+
+/* Responsive */
+@media (max-width:600px){
+  select{width:100%; font-size:16px}
+  .youtube-container{max-width:100%}
+  h1{font-size:1.8rem}
+  #scene{width:100%; height:300px}
+  #swaraDisplay{font-size:22px; letter-spacing:4px}
+  .desc{font-size:20px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎵 Melakarta Raga Atlas</h1>
+  <p>Select a raga to explore its scenery, landscape & YouTube demo</p>
+  <select id="ragaSelect"></select>
+</header>
+
+<div id="scene">
+  <div id="sceneryOverlay" class=""></div>
+  <div id="particles-js"></div>
+  <svg class="waves" viewBox="0 0 1200 60" preserveAspectRatio="none">
+    <path class="wave1" d="M0 40 Q300 70 600 40 T1200 40 V60 H0 Z"></path>
+    <path class="wave2" d="M0 40 Q300 10 600 40 T1200 40 V60 H0 Z"></path>
+  </svg>
+</div>
+
+<div class="notes" id="notesDisplay"></div>
+<div id="swaraDisplay"></div>
+<div class="desc" id="descDisplay"></div>
+
+<div class="youtube-container">
+  <iframe id="playerIframe" src=""
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"
+    title="Raga Demo Video"></iframe>
+</div>
+
+<div id="videoStatus">🎬 Select a raga</div>
+<div class="loading" id="spinner"></div>
+<div id="errorMsg"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+<script>
+// === 72 MELAKARTA RAGAS WITH SCENERY ===
+const ragas = [
+  {number:1,name:"Kanakangi",notes:"S R1 G1 M1 P D1 N1 S",mood:"#f87171",youtubeId:"RncnfQKhLzY",scenery:"moonlit-pond",chakra:1},
+  {number:2,name:"Ratnangi",notes:"S R1 G1 M1 P D1 N2 S",mood:"#fbbf24",youtubeId:"REmEGWy5D4k",scenery:"moonlit-pond",chakra:1},
+  {number:3,name:"Ganamurti",notes:"S R1 G1 M1 P D2 N2 S",mood:"#34d399",youtubeId:"cs1SwomIsuI",scenery:"moonlit-pond",chakra:1},
+  {number:4,name:"Vanaspati",notes:"S R1 G1 M1 P D2 N2 S",mood:"#60a5fa",youtubeId:"bShSYieL5m8",scenery:"moonlit-pond",chakra:1},
+  {number:5,name:"Manavati",notes:"S R1 G2 M1 P D1 N1 S",mood:"#f472b6",youtubeId:"rBQ-A69WoDY",scenery:"moonlit-pond",chakra:1},
+  {number:6,name:"Tanarupi",notes:"S R1 G2 M1 P D1 N2 S",mood:"#facc15",youtubeId:"REmEGWy5D4k",scenery:"moonlit-pond",chakra:1},
+  {number:7,name:"Senavati",notes:"S R1 G2 M1 P D2 N2 S",mood:"#22d3ee",youtubeId:"REmEGWy5D4k",scenery:"dawn-gaze",chakra:2},
+  {number:8,name:"Hanumatodi",notes:"S R1 G2 M1 P D1 N2 S",mood:"#f43f5e",youtubeId:"739A-p5WbMs",scenery:"dawn-gaze",chakra:2},
+  {number:9,name:"Dhenuka",notes:"S R1 G2 M1 P D2 N2 S",mood:"#a78bfa",youtubeId:"739A-p5WbMs",scenery:"dawn-gaze",chakra:2},
+  {number:10,name:"Natakapriya",notes:"S R1 G3 M1 P D1 N1 S",mood:"#f97316",youtubeId:"6KVlRXkZaI8",scenery:"dawn-gaze",chakra:2},
+  {number:11,name:"Kokilapriya",notes:"S R1 G3 M1 P D1 N2 S",mood:"#14b8a6",youtubeId:"6KVlRXkZaI8",scenery:"dawn-gaze",chakra:2},
+  {number:12,name:"Rupavati",notes:"S R1 G3 M1 P D2 N2 S",mood:"#f43f5e",youtubeId:"6KVlRXkZaI8",scenery:"dawn-gaze",chakra:2},
+  {number:13,name:"Gayakapriya",notes:"S R2 G1 M1 P D1 N1 S",mood:"#22c55e",youtubeId:"6KVlRXkZaI8",scenery:"fiery-sunset",chakra:3},
+  {number:14,name:"Vakulabharanam",notes:"S R2 G1 M1 P D1 N2 S",mood:"#60a5fa",youtubeId:"6KVlRXkZaI8",scenery:"fiery-sunset",chakra:3},
+  {number:15,name:"Mayamalavagowla",notes:"S R1 G3 M1 P D1 N3 S",mood:"#fbbf24",youtubeId:"BES_G8-oKwk",scenery:"fiery-sunset",chakra:3},
+  {number:16,name:"Chakravakam",notes:"S R1 G3 M1 P D2 N3 S",mood:"#f472b6",youtubeId:"BES_G8-oKwk",scenery:"fiery-sunset",chakra:3},
+  {number:17,name:"Suryakantam",notes:"S R2 G2 M1 P D1 N2 S",mood:"#34d399",youtubeId:"yXmSvVSDSqk",scenery:"fiery-sunset",chakra:3},
+  {number:18,name:"Hatakambari",notes:"S R2 G2 M1 P D2 N2 S",mood:"#f87171",youtubeId:"yXmSvVSDSqk",scenery:"fiery-sunset",chakra:3},
+  {number:19,name:"Jhankaradhvani",notes:"S R2 G2 M1 P D2 N3 S",mood:"#facc15",youtubeId:"yXmSvVSDSqk",scenery:"ancient-forest",chakra:4},
+  {number:20,name:"Natabhairavi",notes:"S R2 G2 M1 P D1 N1 S",mood:"#22d3ee",youtubeId:"yXmSvVSDSqk",scenery:"ancient-forest",chakra:4},
+  {number:21,name:"Keeravani",notes:"S R2 G2 M1 P D1 N3 S",mood:"#f43f5e",youtubeId:"9mUurcBD4o4",scenery:"ancient-forest",chakra:4},
+  {number:22,name:"Kharaharapriya",notes:"S R2 G2 M1 P D2 N2 S",mood:"#f43f5e",youtubeId:"9mUurcBD4o4",scenery:"ancient-forest",chakra:4},
+  {number:23,name:"Gourimanohari",notes:"S R2 G3 M1 P D2 N3 S",mood:"#a78bfa",youtubeId:"9mUurcBD4o4",scenery:"ancient-forest",chakra:4},
+  {number:24,name:"Varunapriya",notes:"S R3 G3 M1 P D3 N3 S",mood:"#14b8a6",youtubeId:"6KVlRXkZaI8",scenery:"ancient-forest",chakra:4},
+  {number:25,name:"Mararanjani",notes:"S R3 G3 M2 P D3 N3 S",mood:"#f97316",youtubeId:"6KVlRXkZaI8",scenery:"dynamic-river",chakra:5},
+  {number:26,name:"Charukesi",notes:"S R3 G3 M2 P D1 N2 S",mood:"#f97316",youtubeId:"6KVlRXkZaI8",scenery:"dynamic-river",chakra:5},
+  {number:27,name:"Sarasangi",notes:"S R3 G3 M2 P D1 N3 S",mood:"#fbbf24",youtubeId:"6KVlRXkZaI8",scenery:"dynamic-river",chakra:5},
+  {number:28,name:"Harikambhoji",notes:"S R3 G3 M2 P D2 N2 S",mood:"#60a5fa",youtubeId:"6KVlRXkZaI8",scenery:"dynamic-river",chakra:5},
+  {number:29,name:"Dheerasankarabharanam",notes:"S R2 G3 M1 P D2 N3 S",mood:"#22c55e",youtubeId:"6KVlRXkZaI8",scenery:"dynamic-river",chakra:5},
+  {number:30,name:"Naganandini",notes:"S R2 G3 M1 P D3 N3 S",mood:"#f472b6",youtubeId:"6KVlRXkZaI8",scenery:"dynamic-river",chakra:5},
+  {number:31,name:"Yagapriya",notes:"S R3 G3 M1 P D1 N1 S",mood:"#f87171",youtubeId:"",scenery:"blooming-garden",chakra:6},
+  {number:32,name:"Ragavardhini",notes:"S R3 G3 M1 P D1 N2 S",mood:"#f87171",youtubeId:"",scenery:"blooming-garden",chakra:6},
+  {number:33,name:"Gangeyabhushani",notes:"S R3 G3 M1 P D1 N3 S",mood:"#fbbf24",youtubeId:"",scenery:"blooming-garden",chakra:6},
+  {number:34,name:"Vagadheeswari",notes:"S R3 G3 M1 P D2 N2 S",mood:"#60a5fa",youtubeId:"",scenery:"blooming-garden",chakra:6},
+  {number:35,name:"Shulini",notes:"S R3 G3 M1 P D2 N3 S",mood:"#f43f5e",youtubeId:"",scenery:"blooming-garden",chakra:6},
+  {number:36,name:"Chalanata",notes:"S R3 G3 M1 P D3 N3 S",mood:"#f43f5e",youtubeId:"",scenery:"blooming-garden",chakra:6},
+  {number:37,name:"Salagam",notes:"S R1 G1 M2 P D1 N1 S",mood:"#fbbf24",youtubeId:"",scenery:"sage-mountain",chakra:7},
+  {number:38,name:"Jalarnavam",notes:"S R1 G1 M2 P D1 N2 S",mood:"#34d399",youtubeId:"",scenery:"sage-mountain",chakra:7},
+  {number:39,name:"Jhalavarali",notes:"S R1 G1 M2 P D2 N2 S",mood:"#60a5fa",youtubeId:"",scenery:"sage-mountain",chakra:7},
+  {number:40,name:"Navaneetam",notes:"S R1 G1 M2 P D2 N2 S",mood:"#facc15",youtubeId:"",scenery:"sage-mountain",chakra:7},
+  {number:41,name:"Pavani",notes:"S R2 G2 M2 P D2 N3 S",mood:"#facc15",youtubeId:"",scenery:"sage-mountain",chakra:7},
+  {number:42,name:"Raghupriya",notes:"S R2 G3 M2 P D2 N3 S",mood:"#f472b6",youtubeId:"",scenery:"sage-mountain",chakra:7},
+  {number:43,name:"Gavambodhi",notes:"S R1 G2 M2 P D1 N1 S",mood:"#fbbf24",youtubeId:"",scenery:"deity-temple",chakra:8},
+  {number:44,name:"Bhavapriya",notes:"S R1 G2 M2 P D1 N2 S",mood:"#34d399",youtubeId:"",scenery:"deity-temple",chakra:8},
+  {number:45,name:"Subhapantuvarali",notes:"S R1 G2 M2 P D1 N3 S",mood:"#60a5fa",youtubeId:"",scenery:"deity-temple",chakra:8},
+  {number:46,name:"Shadvidamargini",notes:"S R1 G2 M2 P D2 N2 S",mood:"#facc15",youtubeId:"",scenery:"deity-temple",chakra:8},
+  {number:47,name:"Suvarnangi",notes:"S R1 G2 M2 P D2 N3 S",mood:"#f472b6",youtubeId:"",scenery:"deity-temple",chakra:8},
+  {number:48,name:"Divyamani",notes:"S R1 G2 M2 P D3 N3 S",mood:"#a78bfa",youtubeId:"",scenery:"deity-temple",chakra:8},
+  {number:49,name:"Dhavalambari",notes:"S R1 G3 M2 P D1 N1 S",mood:"#fbbf24",youtubeId:"",scenery:"cosmic-night",chakra:9},
+  {number:50,name:"Namanarayani",notes:"S R1 G3 M2 P D1 N2 S",mood:"#34d399",youtubeId:"",scenery:"cosmic-night",chakra:9},
+  {number:51,name:"Kamavardhini",notes:"S R1 G3 M2 P D1 N3 S",mood:"#60a5fa",youtubeId:"",scenery:"cosmic-night",chakra:9},
+  {number:52,name:"Ramapriya",notes:"S R1 G3 M2 P D2 N2 S",mood:"hsl(150,70%,50%)",youtubeId:"",scenery:"cosmic-night",chakra:9},
+  {number:53,name:"Gamanashrama",notes:"S R1 G3 M2 P D2 N3 S",mood:"#f472b6",youtubeId:"",scenery:"cosmic-night",chakra:9},
+  {number:54,name:"Viswambari",notes:"S R1 G3 M2 P D3 N3 S",mood:"#a78bfa",youtubeId:"",scenery:"cosmic-night",chakra:9},
+  {number:55,name:"Shamalangi",notes:"S R2 G2 M2 P D1 N1 S",mood:"#facc15",youtubeId:"",scenery:"windy-plains",chakra:10},
+  {number:56,name:"Shanmukhapriya",notes:"S R2 G2 M2 P D1 N2 S",mood:"#f43f5e",youtubeId:"",scenery:"windy-plains",chakra:10},
+  {number:57,name:"Simhendramadhyamam",notes:"S R2 G2 M2 P D1 N3 S",mood:"#f43f5e",youtubeId:"",scenery:"windy-plains",chakra:10},
+  {number:58,name:"Hemavati",notes:"S R2 G2 M2 P D2 N2 S",mood:"#22c55e",youtubeId:"",scenery:"windy-plains",chakra:10},
+  {number:59,name:"Dharmavati",notes:"S R2 G2 M2 P D2 N3 S",mood:"#a78bfa",youtubeId:"",scenery:"windy-plains",chakra:10},
+  {number:60,name:"Neetimati",notes:"S R2 G2 M2 P D3 N3 S",mood:"#f87171",youtubeId:"",scenery:"windy-plains",chakra:10},
+  {number:61,name:"Kantamani",notes:"S R2 G3 M2 P D1 N1 S",mood:"#fbbf24",youtubeId:"",scenery:"stormy-twilight",chakra:11},
+  {number:62,name:"Rishabhapriya",notes:"S R2 G3 M2 P D1 N2 S",mood:"#34d399",youtubeId:"",scenery:"stormy-twilight",chakra:11},
+  {number:63,name:"Latangi",notes:"S R2 G3 M2 P D1 N3 S",mood:"#60a5fa",youtubeId:"",scenery:"stormy-twilight",chakra:11},
+  {number:64,name:"Vachaspati",notes:"S R2 G3 M2 P D2 N2 S",mood:"#facc15",youtubeId:"",scenery:"stormy-twilight",chakra:11},
+  {number:65,name:"Mechakalyani",notes:"S R2 G3 M2 P D2 N3 S",mood:"#22c55e",youtubeId:"",scenery:"stormy-twilight",chakra:11},
+  {number:66,name:"Chitrambari",notes:"S R2 G3 M2 P D3 N3 S",mood:"#f87171",youtubeId:"",scenery:"stormy-twilight",chakra:11},
+  {number:67,name:"Sucharitra",notes:"S R3 G3 M2 P D1 N1 S",mood:"#fbbf24",youtubeId:"",scenery:"bright-midday",chakra:12},
+  {number:68,name:"Jyotiswarupini",notes:"S R3 G3 M2 P D1 N2 S",mood:"#34d399",youtubeId:"",scenery:"bright-midday",chakra:12},
+  {number:69,name:"Dhatuvardhani",notes:"S R3 G3 M2 P D1 N3 S",mood:"#60a5fa",youtubeId:"",scenery:"bright-midday",chakra:12},
+  {number:70,name:"Nasikabhushani",notes:"S R3 G3 M2 P D2 N2 S",mood:"#facc15",youtubeId:"",scenery:"bright-midday",chakra:12},
+  {number:71,name:"Kosalam",notes:"S R3 G3 M2 P D2 N3 S",mood:"#f87171",youtubeId:"",scenery:"bright-midday",chakra:12},
+  {number:72,name:"Rasikapriya",notes:"S R3 G3 M2 P D3 N3 S",mood:"#f43f5e",youtubeId:"",scenery:"bright-midday",chakra:12}
+];
+
+// DOM Elements
+const select = document.getElementById("ragaSelect");
+const iframe = document.getElementById("playerIframe");
+const errorMsg = document.getElementById("errorMsg");
+const videoStatus = document.getElementById("videoStatus");
+const spinner = document.getElementById("spinner");
+const swaraDisplay = document.getElementById("swaraDisplay");
+const descDisplay = document.getElementById("descDisplay");
+const scene = document.getElementById("scene");
+const wave1 = document.querySelector('.wave1');
+const wave2 = document.querySelector('.wave2');
+const overlay = document.getElementById("sceneryOverlay");
+
+// Populate dropdown
+ragas.forEach((r,i)=>{
+  const opt = document.createElement("option");
+  opt.value = i;
+  opt.textContent = `${r.number}. ${r.name}`;
+  select.appendChild(opt);
+});
+
+// Update scene function
+function updateScene(i){
+  const r = ragas[i];
   
+  // Update text displays
+  document.getElementById("notesDisplay").textContent = "Arohana: " + r.notes;
+  descDisplay.textContent = r.name + " – Raga #" + r.number + " (Chakra " + r.chakra + ")";
+  
+  // Update scene background gradient
+  scene.style.background = `linear-gradient(to top, ${r.mood}88 0%, #011428 100%)`;
+  
+  // Set CSS variables for glow effect
+  descDisplay.style.setProperty('--raga-mood', r.mood);
+  descDisplay.style.setProperty('--raga-mood-88', r.mood + '88');
+  
+  // Sync wave colors with raga mood
+  wave1.style.fill = r.mood + '55';
+  wave2.style.fill = r.mood + '33';
+  
+  // Animated swara notes
+  swaraDisplay.innerHTML = r.notes.split(' ').map(s => 
+    `<span style="color:${s==='S' ? '#fff' : r.mood}">${s}</span>`
+  ).join(' ');
+  
+  // === SCENERY OVERLAY FIX: Force class change with reflow ===
+  overlay.className = '';
+  overlay.offsetHeight; // Force browser reflow
+  overlay.className = r.scenery || '';
+  
+  // Reset messages
+  errorMsg.textContent = "";
+  videoStatus.textContent = "Loading " + r.name + "...";
+  spinner.style.display = 'block';
+  
+  // YouTube embed with fixed URL (no trailing spaces!)
+  const origin = location.origin || "http://localhost";
+  if (r.youtubeId && r.youtubeId.trim() !== "") {
+    iframe.src = `https://www.youtube-nocookie.com/embed/${r.youtubeId}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(origin)}`;
+    iframe.onload = () => {
+      spinner.style.display = 'none';
+      videoStatus.textContent = "✅ Ready: " + r.name;
+    };
+    iframe.onerror = () => {
+      spinner.style.display = 'none';
+      errorMsg.textContent = "❌ Video blocked. Try http://localhost";
+    };
+  } else {
+    iframe.src = '';
+    spinner.style.display = 'none';
+    videoStatus.textContent = "🎵 Search YouTube: '" + r.name + " alapana'";
+  }
+  
+  // Initialize particles with raga mood
+  particlesJS("particles-js",{
+    particles:{
+      number:{value:80 + Math.round(r.number * 0.5)},
+      color:{value:r.mood},
+      shape:{type:"circle"},
+      opacity:{value:0.5},
+      size:{value:3},
+      move:{speed:1, direction:"none", out_mode:"out"}
+    },
+    interactivity:{
+      events:{onhover:{enable:true,mode:"repulse"}},
+      modes:{repulse:{distance:100, duration:0.4}}
+    }
+  });
+}
+
+// Event listeners
+select.addEventListener("change",(e)=> updateScene(parseInt(e.target.value)));
+
+// Initialize
+updateScene(0);
+
+// Particles.js config
+particlesJS("particles-js",{
+  particles:{
+    number:{value:80},
+    color:{value:"#ffffff"},
+    shape:{type:"circle"},
+    opacity:{value:0.5},
+    size:{value:3},
+    move:{speed:1}
+  },
+  interactivity:{
+    events:{onhover:{enable:true,mode:"repulse"}}
+  }
+});
+</script>
+</body>
+</html>
