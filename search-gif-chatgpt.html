@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Universal Media & Emoji Search</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0f0f0f;
+    color: white;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.search {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input {
+    width: 320px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+}
+
+button {
+    padding: 8px 12px;
+    margin: 3px;
+    cursor: pointer;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.tab {
+    padding: 8px 14px;
+    background: #333;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.active {
+    background: #00bcd4;
+}
+
+.results {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.results img {
+    width: 100%;
+    border-radius: 6px;
+}
+
+.emoji-result {
+    font-size: 100px;
+    background: #1b1b1b;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    margin: 5px;
+    position: relative;
+}
+
+.copy-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    font-size: 14px;
+    padding: 3px 6px;
+    border: none;
+    border-radius: 4px;
+    background: #00bcd4;
+    color: #000;
+    cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>Universal GIF / Image / Emoji Search</h1>
+
+<div class="search">
+<input id="q" placeholder="சிரிப்பு Vadivelu, GIFs, memes, படங்கள் தேடு">
+<button onclick="searchAll()">Search</button>
+<button id="emojiBtn" onclick="generateEmoji()" disabled>Create Emoji</button>
+</div>
+
+<div class="tabs">
+<div class="tab active" onclick="show('all',event)">All</div>
+<div class="tab" onclick="show('giphy',event)">Giphy</div>
+<div class="tab" onclick="show('tenor',event)">Tenor</div>
+<div class="tab" onclick="show('imgur',event)">Imgur</div>
+<div class="tab" onclick="show('reddit',event)">Reddit</div>
+</div>
+
+<div id="results" class="results"></div>
+
+<script>
+const GIPHY_KEY="aGyfpLUGGHCk9HVWCNPxwW6adXAQzDN6";
+let store={giphy:[],tenor:[],imgur:[],reddit:[]};
+let emojiDB=[];
+
+/* ------------------ LOAD JOYPIXELS EMOJI DB WITH CACHING ------------------ */
+async function loadEmojiDB(){
+    const CACHE_KEY="emojiDB_cache";
+    const CACHE_TIME="emojiDB_cache_time";
+    const ONE_DAY=24*60*60*1000;
+
+    let cached = localStorage.getItem(CACHE_KEY);
+    let cacheTime = localStorage.getItem(CACHE_TIME);
+
+    if(cached && cacheTime && (Date.now()-cacheTime)<ONE_DAY){
+        console.log("Loading emoji DB from cache");
+        emojiDB=JSON.parse(cached);
+        enableEmojiButton();
+        return;
+    }
+
+    try{
+        console.log("Fetching emoji DB from JoyPixels");
+        const url="https://cdn.jsdelivr.net/gh/joypixels/emoji-assets/emoji.json";
+        const res=await fetch(url);
+        const data=await res.json();
+        emojiDB=Object.values(data);
+        localStorage.setItem(CACHE_KEY,JSON.stringify(emojiDB));
+        localStorage.setItem(CACHE_TIME,Date.now());
+        enableEmojiButton();
+    }catch(e){
+        console.error("Emoji DB load failed",e);
+    }
+}
+
+function enableEmojiButton(){
+    const btn=document.getElementById("emojiBtn");
+    btn.disabled=false;
+    btn.innerText="Create Emoji";
+    console.log("Emoji DB ready:",emojiDB.length);
+}
+
+loadEmojiDB();
+
+/* ------------------ CONVERT HEX TO NATIVE EMOJI ------------------ */
+function hexToEmoji(hexString){
+    const codes = hexString.split('-').map(h=>parseInt(h,16));
+    return String.fromCodePoint(...codes);
+}
+
+/* ------------------ TAB DISPLAY ------------------ */
+function show(source,event){
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    event.target.classList.add("active");
+
+    const container=document.getElementById("results");
+    container.innerHTML="";
+
+    let items=[];
+    if(source=="all"){
+        items=[...store.giphy,...store.tenor,...store.imgur,...store.reddit];
+        items.forEach(url=>{
+            let img=document.createElement("img");
+            img.src=url;
+            img.onerror=()=>{img.src="https://via.placeholder.com/200?text=Image+Not+Found"};
+            container.appendChild(img);
+        });
+    } else {
+        items=store[source];
+        items.forEach(url=>{
+            let img=document.createElement("img");
+            img.src=url;
+            img.onerror=()=>{img.src="https://via.placeholder.com/200?text=Image+Not+Found"};
+            container.appendChild(img);
+        });
+    }
+}
+
+/* ------------------ SEARCH ALL SOURCES ------------------ */
+async function searchAll(){
+    const q=document.getElementById("q").value;
+    store={giphy:[],tenor:[],imgur:[],reddit:[]};
+
+    await Promise.all([
+        searchGiphy(q),
+        searchTenor(q),
+        searchImgur(q),
+        searchReddit(q)
+    ]);
+
+    show("all",{target:document.querySelector(".tab")});
+}
+
+/* ------------------ GIPHY ------------------ */
+async function searchGiphy(q){
+    let url=`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${q}&limit=50`;
+    let res=await fetch(url);
+    let data=await res.json();
+    data.data.forEach(g=>store.giphy.push(g.images.fixed_width.url));
+}
+
+/* ------------------ TENOR ------------------ */
+async function searchTenor(q){
+    let url=`https://g.tenor.com/v1/search?q=${q}&key=LIVDSRZULELA&limit=50`;
+    let res=await fetch(url);
+    let data=await res.json();
+    data.results.forEach(r=>store.tenor.push(r.media[0].gif.url));
+}
+
+/* ------------------ IMGUR SCRAPE ------------------ */
+async function searchImgur(q){
+    try{
+        let url=`https://imgur.com/search?q=${q}`;
+        let res=await fetch(url);
+        let text=await res.text();
+        let matches=[...text.matchAll(/https:\/\/i\.imgur\.com\/[a-zA-Z0-9]+\.jpg/g)];
+        matches.slice(0,50).forEach(m=>store.imgur.push(m[0]));
+    }catch(e){ console.log("Imgur blocked"); }
+}
+
+/* ------------------ REDDIT ------------------ */
+async function searchReddit(q){
+    let url=`https://www.reddit.com/search.json?q=${q}&limit=50`;
+    let res=await fetch(url);
+    let data=await res.json();
+    data.data.children.forEach(post=>{
+        let url=post.data.url;
+        if(url.match(/\.(jpg|jpeg|png|gif)$/i) && !url.includes('preview') && !url.includes('gallery')){
+            store.reddit.push(url);
+        }
+    });
+}
+
+/* ------------------ AI EMOJI GENERATOR ------------------ */
+function generateEmoji(){
+    const text=document.getElementById("q").value.toLowerCase().trim();
+    const container=document.getElementById("results");
+    container.innerHTML="";
+
+    if(!emojiDB.length){ alert("Emoji database still loading"); return; }
+    if(text.length===0){ alert("Please enter some text"); return; }
+
+    const words=text.split(/\s+/);
+    const matched=new Map();
+
+    emojiDB.forEach(e=>{
+        const keywords=[];
+        if(e.name) keywords.push(e.name.toLowerCase());
+        if(e.shortname) keywords.push(e.shortname.toLowerCase());
+        if(e.keywords) keywords.push(...e.keywords.map(k=>k.toLowerCase()));
+
+        const isMatch = words.some(w=>keywords.some(k=>k.includes(w)));
+        if(isMatch){
+            const codeHex = e.code_points.fully_qualified || e.unicode;
+            if(codeHex && !matched.has(codeHex)){
+                matched.set(codeHex, hexToEmoji(codeHex));
+            }
+        }
+    });
+
+    if(matched.size===0){
+        container.textContent="🤔 No matching emojis found.";
+        return;
+    }
+
+    matched.forEach(emojiChar=>{
+        const div=document.createElement("div");
+        div.className="emoji-result";
+        div.textContent=emojiChar;
+
+        const copyBtn=document.createElement("button");
+        copyBtn.className="copy-btn";
+        copyBtn.textContent="Copy";
+        copyBtn.onclick=()=>{navigator.clipboard.writeText(emojiChar)};
+        div.appendChild(copyBtn);
+
+        container.appendChild(div);
+    });
+}
+
+/* ------------------ SEARCH ON ENTER KEY FIX ------------------ */
+document.getElementById("q").addEventListener("keypress", function(e){
+    if(e.key === "Enter"){
+        searchAll();  // always trigger searchAll() on Enter
+    }
+});
+</script>
+</body>
+</html>
